@@ -47,10 +47,12 @@ export function publishChatEvent(
   broadcast(event, data)
 }
 
-export async function ensureBusStarted(): Promise<void> {
+export function ensureBusStarted(): Promise<void> {
   const bus = getBus()
-  if (bus.started) return
-  bus.started = true
+  if (!bus.started) {
+    bus.started = true
+  }
+  return Promise.resolve()
 }
 
 export function subscribeToChatEvents(

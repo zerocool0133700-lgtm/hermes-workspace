@@ -1,4 +1,14 @@
 package-lock.json
 pnpm-lock.yaml
 yarn.lock
+playground-ws-worker/pnpm-lock.yaml
 
+# Build artifacts / generated output — not source, never format-checked.
+dist/
+dist-electron/
+coverage/
+electron/server-bundle.cjs
+
+# Generated audit deliverables.
+CODEBASE_AUDIT.md
+CODEBASE_AUDIT.html

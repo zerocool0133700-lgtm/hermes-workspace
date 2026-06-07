@@ -86,7 +86,7 @@ export function useContextAlert(): {
       const data = (await res.json()) as {
         ok?: boolean
         contextPercent?: unknown
-      }
+      } | null
       if (!data?.ok) return
 
       const currentPercent = readPercent(data.contextPercent)

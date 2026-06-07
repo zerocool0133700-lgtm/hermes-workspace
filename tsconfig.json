@@ -6,12 +6,24 @@
     "prettier.config.js",
     "vite.config.ts"
   ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "dist-electron",
+    "coverage",
+    "electron/server-bundle.cjs",
+    // e2e specs run under Playwright's own pipeline/tsconfig (see playwright.config.ts).
+    "e2e",
+    // The playground WS worker is a separate workspace package built by wrangler
+    // with @cloudflare/workers-types; it has its own tsconfig.
+    "playground-ws-worker"
+  ],
 
   "compilerOptions": {
     "target": "ES2022",
     "jsx": "react-jsx",
     "module": "ESNext",
-    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
     "types": ["vite/client"],
 
     /* Bundler mode */

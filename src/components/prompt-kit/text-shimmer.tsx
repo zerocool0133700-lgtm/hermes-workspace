@@ -18,7 +18,7 @@ export function TextShimmer({
   ...props
 }: TextShimmerProps) {
   const dynamicSpread = Math.min(Math.max(spread, 5), 45)
-  const Component = as as React.ElementType
+  const Component = as as React.ElementType<React.HTMLAttributes<HTMLElement>>
 
   return (
     <Component

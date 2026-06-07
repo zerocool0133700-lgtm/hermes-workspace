@@ -1,4 +1,5 @@
-import { useState, type ReactNode } from 'react'
+import { useState } from 'react'
+import type { ReactNode } from 'react'
 import { cn } from '@/lib/utils'
 
 type Tab = 'create' | 'manage' | 'theme'
@@ -36,7 +37,10 @@ export function EchoStudioScreen() {
   }
 
   const handleTemplate = (id: string) => {
-    const templates: Record<string, { id: string; title: string; prompt: string }> = {
+    const templates: Record<
+      string,
+      { id: string; title: string; prompt: string }
+    > = {
       analytics: {
         id: 'tool-analytics',
         title: 'Tool Analytics',
@@ -56,7 +60,7 @@ export function EchoStudioScreen() {
           'A chat analytics dashboard showing messages per day as a bar chart, top users table, average response time trend, sentiment breakdown pie chart, and a searchable message log.',
       },
     }
-    const t = templates[id]
+    const t = Object.hasOwn(templates, id) ? templates[id] : undefined
     if (t) {
       setPageId(t.id)
       setPageTitle(t.title)
@@ -77,7 +81,7 @@ export function EchoStudioScreen() {
 
         {/* Tabs */}
         <div className="mb-6 flex gap-1 rounded-lg border border-primary-200 bg-primary-50/85 p-1 backdrop-blur-xl">
-          {(['create', 'manage', 'theme'] as Tab[]).map((t) => (
+          {(['create', 'manage', 'theme'] as Array<Tab>).map((t) => (
             <button
               key={t}
               onClick={() => setTab(t)}
@@ -146,10 +150,18 @@ export function EchoStudioScreen() {
                   <button
                     type="button"
                     onClick={handleCreate}
-                    disabled={!pageId.trim() || !pageTitle.trim() || !prompt.trim() || creating}
+                    disabled={
+                      !pageId.trim() ||
+                      !pageTitle.trim() ||
+                      !prompt.trim() ||
+                      creating
+                    }
                     className={cn(
                       'inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold text-white transition-all',
-                      creating || !pageId.trim() || !pageTitle.trim() || !prompt.trim()
+                      creating ||
+                        !pageId.trim() ||
+                        !pageTitle.trim() ||
+                        !prompt.trim()
                         ? 'cursor-not-allowed bg-primary-300 opacity-60'
                         : 'bg-accent-500 hover:bg-accent-600 active:scale-[0.98]',
                     )}
@@ -212,9 +224,12 @@ export function EchoStudioScreen() {
         {/* Theme Tab */}
         {tab === 'theme' && (
           <div className="rounded-2xl border border-primary-200 bg-primary-50/50 p-8 text-center">
-            <p className="text-lg text-primary-500">Theme customization coming soon.</p>
+            <p className="text-lg text-primary-500">
+              Theme customization coming soon.
+            </p>
             <p className="mt-1 text-sm text-primary-400">
-              Choose from light, dark, and custom color schemes for your dashboards.
+              Choose from light, dark, and custom color schemes for your
+              dashboards.
             </p>
           </div>
         )}
@@ -229,7 +244,9 @@ function StatCard({ label, value }: { label: string; value: number }) {
       <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-primary-500">
         {label}
       </p>
-      <p className="mt-1 text-2xl font-semibold tracking-tight text-ink">{value}</p>
+      <p className="mt-1 text-2xl font-semibold tracking-tight text-ink">
+        {value}
+      </p>
     </div>
   )
 }

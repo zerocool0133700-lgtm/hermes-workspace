@@ -37,12 +37,12 @@ async function getInstalledNames(): Promise<Set<string>> {
   try {
     // Lazy import to avoid circular deps and keep server-only
     const { getConfig } = await import('../claude-dashboard-api')
-    const config = await getConfig()
+    const config: unknown = await getConfig()
 
     // Config may be wrapped in { config: {...} } shape
     const root =
       config && typeof config === 'object' && 'config' in config
-        ? config.config
+        ? (config as Record<string, unknown>).config
         : config
 
     const mcp =

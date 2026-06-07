@@ -1,6 +1,14 @@
-import { Component, Suspense, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import {
+  Component,
+  Suspense,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import { useGLTF } from '@react-three/drei'
-import * as THREE from 'three'
+import type { ReactNode } from 'react'
+import type * as THREE from 'three'
 
 class GlbErrorBoundary extends Component<
   { children: ReactNode; onError?: () => void },
@@ -27,7 +35,10 @@ export function useGlbProbe(url: string): 'unknown' | 'present' | 'missing' {
   )
 
   useEffect(() => {
-    if (probeCache.get(url) === 'present' || probeCache.get(url) === 'missing') {
+    if (
+      probeCache.get(url) === 'present' ||
+      probeCache.get(url) === 'missing'
+    ) {
       setState(probeCache.get(url)!)
       return
     }
@@ -61,7 +72,15 @@ export function useGlbProbe(url: string): 'unknown' | 'present' | 'missing' {
   return state
 }
 
-function GlbInner({ url, scale, yOffset }: { url: string; scale: number; yOffset: number }) {
+function GlbInner({
+  url,
+  scale,
+  yOffset,
+}: {
+  url: string
+  scale: number
+  yOffset: number
+}) {
   const { scene } = useGLTF(url) as any
   const ref = useRef<THREE.Group>(null)
   const cloned = useMemo(() => {

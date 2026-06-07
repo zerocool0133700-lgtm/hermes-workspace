@@ -1,34 +1,39 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-vi.mock('../../server/gateway-capabilities', () => ({
-  BEARER_TOKEN: '',
-  CLAUDE_API: 'http://127.0.0.1:8642',
-  dashboardFetch: vi.fn(),
-  ensureGatewayProbed: vi.fn(async () => ({ dashboard: { available: false } })),
-  getCapabilities: vi.fn(() => ({ dashboard: { available: false } })),
-}))
-
-vi.mock('../../server/claude-api', () => ({
-  listSessions: vi.fn(async () => []),
-}))
-
-vi.mock('../../server/local-session-store', () => ({
-  getLocalMessages: vi.fn(() => []),
-  getLocalSession: vi.fn(() => null),
-}))
-
 import {
   dashboardFetch,
   ensureGatewayProbed,
   getCapabilities,
 } from '../../server/gateway-capabilities'
 import { listSessions } from '../../server/claude-api'
-import { getLocalMessages, getLocalSession } from '../../server/local-session-store'
+import {
+  getLocalMessages,
+  getLocalSession,
+} from '../../server/local-session-store'
 import {
   estimateContextTokensFromCacheRead,
   estimateContextTokensFromMessages,
   readContextUsage,
 } from '../../server/context-usage'
+
+vi.mock('../../server/gateway-capabilities', () => ({
+  BEARER_TOKEN: '',
+  CLAUDE_API: 'http://127.0.0.1:8642',
+  dashboardFetch: vi.fn(),
+  ensureGatewayProbed: vi.fn(() =>
+    Promise.resolve({ dashboard: { available: false } }),
+  ),
+  getCapabilities: vi.fn(() => ({ dashboard: { available: false } })),
+}))
+
+vi.mock('../../server/claude-api', () => ({
+  listSessions: vi.fn(() => Promise.resolve([])),
+}))
+
+vi.mock('../../server/local-session-store', () => ({
+  getLocalMessages: vi.fn(() => []),
+  getLocalSession: vi.fn(() => null),
+}))
 
 afterEach(() => {
   vi.unstubAllGlobals()
@@ -37,18 +42,20 @@ afterEach(() => {
 
 describe('context usage estimation', () => {
   it('prefers live gateway runtime snapshots when the vanilla runtime endpoint is available', async () => {
-    const fetchMock = vi.fn(async () =>
-      new Response(
-        JSON.stringify({
-          model: 'anthropic/claude-sonnet-4-20250514',
-          context_tokens: 4321,
-          context_length: 200000,
-          context_percent: 2,
-          prompt_tokens: 111,
-          completion_tokens: 22,
-          total_tokens: 133,
-        }),
-        { status: 200, headers: { 'Content-Type': 'application/json' } },
+    const fetchMock = vi.fn(() =>
+      Promise.resolve(
+        new Response(
+          JSON.stringify({
+            model: 'anthropic/claude-sonnet-4-20250514',
+            context_tokens: 4321,
+            context_length: 200000,
+            context_percent: 2,
+            prompt_tokens: 111,
+            completion_tokens: 22,
+            total_tokens: 133,
+          }),
+          { status: 200, headers: { 'Content-Type': 'application/json' } },
+        ),
       ),
     )
     vi.stubGlobal('fetch', fetchMock)
@@ -78,20 +85,22 @@ describe('context usage estimation', () => {
       },
     ] as any)
 
-    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+    const fetchMock = vi.fn((input: RequestInfo | URL) => {
       const url = String(input)
       if (url.includes('/api/sessions/session-abc/runtime')) {
-        return new Response(
-          JSON.stringify({
-            model: 'gpt-5.4',
-            context_tokens: 86397,
-            context_length: 512000,
-            context_percent: 17,
-          }),
-          { status: 200, headers: { 'Content-Type': 'application/json' } },
+        return Promise.resolve(
+          new Response(
+            JSON.stringify({
+              model: 'gpt-5.4',
+              context_tokens: 86397,
+              context_length: 512000,
+              context_percent: 17,
+            }),
+            { status: 200, headers: { 'Content-Type': 'application/json' } },
+          ),
         )
       }
-      return new Response('not found', { status: 404 })
+      return Promise.resolve(new Response('not found', { status: 404 }))
     })
     vi.stubGlobal('fetch', fetchMock)
 
@@ -112,7 +121,10 @@ describe('context usage estimation', () => {
   })
 
   it('prefers configured dashboard context length for local Workspace-only chats', async () => {
-    vi.mocked(getLocalSession).mockReturnValue({ id: 'local-1', model: null } as any)
+    vi.mocked(getLocalSession).mockReturnValue({
+      id: 'local-1',
+      model: null,
+    } as any)
     vi.mocked(getLocalMessages).mockReturnValue([
       { content: 'x'.repeat(700) },
     ] as any)
@@ -123,12 +135,12 @@ describe('context usage estimation', () => {
       dashboard: { available: true },
     } as any)
 
-    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+    const fetchMock = vi.fn((input: RequestInfo | URL) => {
       const url = String(input)
       if (url.includes('/api/sessions/local-1/runtime')) {
-        return new Response('not found', { status: 404 })
+        return Promise.resolve(new Response('not found', { status: 404 }))
       }
-      return new Response('unexpected', { status: 500 })
+      return Promise.resolve(new Response('unexpected', { status: 500 }))
     })
     vi.stubGlobal('fetch', fetchMock)
     vi.mocked(dashboardFetch).mockResolvedValue(
@@ -184,34 +196,38 @@ describe('context usage estimation', () => {
       },
     ] as any)
 
-    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+    const fetchMock = vi.fn((input: RequestInfo | URL) => {
       const url = String(input)
       if (url.includes('/api/sessions/local-mirror/runtime')) {
-        return new Response('not found', { status: 404 })
+        return Promise.resolve(new Response('not found', { status: 404 }))
       }
       if (url.includes('/api/sessions/runtime-nearest/runtime')) {
-        return new Response(
-          JSON.stringify({
-            model: 'gpt-5.4',
-            context_tokens: 85028,
-            context_length: 512000,
-            context_percent: 17,
-          }),
-          { status: 200, headers: { 'Content-Type': 'application/json' } },
+        return Promise.resolve(
+          new Response(
+            JSON.stringify({
+              model: 'gpt-5.4',
+              context_tokens: 85028,
+              context_length: 512000,
+              context_percent: 17,
+            }),
+            { status: 200, headers: { 'Content-Type': 'application/json' } },
+          ),
         )
       }
       if (url.includes('/api/sessions/runtime-older/runtime')) {
-        return new Response(
-          JSON.stringify({
-            model: 'gpt-5.4',
-            context_tokens: 19266,
-            context_length: 512000,
-            context_percent: 4,
-          }),
-          { status: 200, headers: { 'Content-Type': 'application/json' } },
+        return Promise.resolve(
+          new Response(
+            JSON.stringify({
+              model: 'gpt-5.4',
+              context_tokens: 19266,
+              context_length: 512000,
+              context_percent: 4,
+            }),
+            { status: 200, headers: { 'Content-Type': 'application/json' } },
+          ),
         )
       }
-      return new Response('not found', { status: 404 })
+      return Promise.resolve(new Response('not found', { status: 404 }))
     })
     vi.stubGlobal('fetch', fetchMock)
 
@@ -236,7 +252,9 @@ describe('context usage estimation', () => {
       dashboard: { available: true },
     } as any)
 
-    const fetchMock = vi.fn(async () => new Response('not found', { status: 404 }))
+    const fetchMock = vi.fn(() =>
+      Promise.resolve(new Response('not found', { status: 404 })),
+    )
     vi.stubGlobal('fetch', fetchMock)
     vi.mocked(dashboardFetch).mockResolvedValue(
       new Response(
@@ -279,7 +297,10 @@ describe('context usage estimation', () => {
   })
 
   it('uses structured message estimation for local sessions instead of string-only content lengths', async () => {
-    vi.mocked(getLocalSession).mockReturnValue({ id: 'local-structured', model: null } as any)
+    vi.mocked(getLocalSession).mockReturnValue({
+      id: 'local-structured',
+      model: null,
+    } as any)
     vi.mocked(getLocalMessages).mockReturnValue([
       {
         content: [{ type: 'tool_result', text: 'x'.repeat(400) }],
@@ -292,7 +313,9 @@ describe('context usage estimation', () => {
       dashboard: { available: true },
     } as any)
 
-    const fetchMock = vi.fn(async () => new Response('not found', { status: 404 }))
+    const fetchMock = vi.fn(() =>
+      Promise.resolve(new Response('not found', { status: 404 })),
+    )
     vi.stubGlobal('fetch', fetchMock)
     vi.mocked(dashboardFetch).mockResolvedValue(
       new Response(

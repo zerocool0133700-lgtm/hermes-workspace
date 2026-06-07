@@ -1,6 +1,6 @@
 import { useCallback, useRef } from 'react'
 import { useNavigate, useRouterState } from '@tanstack/react-router'
-import type { TouchEvent } from 'react'
+import type { Touch, TouchEvent } from 'react'
 import { useWorkspaceStore } from '@/stores/workspace-store'
 
 const TAB_ORDER = ['/chat/main', '/files', '/jobs', '/settings'] as const
@@ -66,7 +66,8 @@ export function useSwipeNavigation() {
       gestureRef.current = null
       return
     }
-    const touch = event.touches[0]
+    const touch: Touch | undefined =
+      event.touches.length > 0 ? event.touches[0] : undefined
     if (!touch || shouldIgnoreTarget(event.target)) {
       gestureRef.current = null
       return
@@ -89,7 +90,8 @@ export function useSwipeNavigation() {
     const gesture = gestureRef.current
     if (!gesture) return
 
-    const touch = event.touches[0]
+    const touch: Touch | undefined =
+      event.touches.length > 0 ? event.touches[0] : undefined
     if (!touch) return
 
     if (!gesture.locked) {
@@ -115,7 +117,8 @@ export function useSwipeNavigation() {
       gestureRef.current = null
       if (!gesture) return
 
-      const touch = event.changedTouches[0]
+      const touch: Touch | undefined =
+        event.changedTouches.length > 0 ? event.changedTouches[0] : undefined
       if (!touch) return
 
       const dx = touch.clientX - gesture.startX

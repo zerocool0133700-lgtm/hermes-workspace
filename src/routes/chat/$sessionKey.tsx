@@ -82,10 +82,7 @@ function ChatRoute() {
   }, [isNewChat, queryClient])
 
   const handleSessionResolved = useCallback(
-    function handleSessionResolved(payload: {
-      friendlyId: string
-      sessionKey: string
-    }) {
+    function (payload: { friendlyId: string; sessionKey: string }) {
       const sourceFriendlyId = activeFriendlyId
       const sourceSessionKey = forcedSessionKey ?? activeFriendlyId
       moveHistoryMessages(

@@ -1,7 +1,11 @@
 export async function writeTextToClipboard(text: string): Promise<void> {
-  if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+  // `navigator.clipboard` is typed as always present, but it is genuinely
+  // undefined in insecure origins / older browsers, so detect it at runtime.
+  const clipboard: Clipboard | undefined =
+    typeof navigator !== 'undefined' ? navigator.clipboard : undefined
+  if (clipboard) {
     try {
-      await navigator.clipboard.writeText(text)
+      await clipboard.writeText(text)
       return
     } catch {
       // Fall through to execCommand for insecure origins / limited browsers.

@@ -147,16 +147,12 @@ export function TerminalWorkspace({
 
   const activeTab = useMemo(
     function activeTabMemo() {
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- runtime safety
-      return tabs.find((tab) => tab.id === activeTabId) ?? tabs[0] ?? null
+      return tabs.find((tab) => tab.id === activeTabId) ?? tabs.at(0) ?? null
     },
     [activeTabId, tabs],
   )
 
-  const sendInput = useCallback(function sendInput(
-    tabId: string,
-    data: string,
-  ) {
+  const sendInput = useCallback(function (tabId: string, data: string) {
     // Look up session ID from store at call time (not stale closure)
     const currentTab = useTerminalPanelStore
       .getState()
@@ -172,7 +168,7 @@ export function TerminalWorkspace({
     })
   }, [])
 
-  const resizeSession = useCallback(async function resizeSession(
+  const resizeSession = useCallback(async function (
     tabId: string,
     terminal: Terminal,
   ) {
@@ -193,29 +189,27 @@ export function TerminalWorkspace({
     })
   }, [])
 
-  const captureRecentTerminalOutput = useCallback(
-    function captureRecentTerminalOutput(tabId: string): string {
-      const terminal = terminalMapRef.current.get(tabId)
-      if (!terminal) return ''
+  const captureRecentTerminalOutput = useCallback(function (
+    tabId: string,
+  ): string {
+    const terminal = terminalMapRef.current.get(tabId)
+    if (!terminal) return ''
 
-      const buffer = terminal.buffer.active
-      const startLine = Math.max(0, buffer.length - 100)
-      const recentLines: Array<string> = []
+    const buffer = terminal.buffer.active
+    const startLine = Math.max(0, buffer.length - 100)
+    const recentLines: Array<string> = []
 
-      for (let index = startLine; index < buffer.length; index += 1) {
-        const line = buffer.getLine(index)
-        if (!line) continue
-        recentLines.push(line.translateToString(true))
-      }
+    for (let index = startLine; index < buffer.length; index += 1) {
+      const line = buffer.getLine(index)
+      if (!line) continue
+      recentLines.push(line.translateToString(true))
+    }
 
-      return recentLines.join('\n').trim()
-    },
-    [],
-  )
+    return recentLines.join('\n').trim()
+  }, [])
 
   const handleAnalyzeDebug = useCallback(
-    async function handleAnalyzeDebug() {
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- runtime safety
+    async function () {
       if (!activeTab) return
 
       setShowDebugPanel(true)
@@ -255,21 +249,19 @@ export function TerminalWorkspace({
   )
 
   const handleRunDebugCommand = useCallback(
-    function handleRunDebugCommand(command: string) {
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- runtime safety
+    function (command: string) {
       if (!activeTab) return
       void sendInput(activeTab.id, `${command}\r`)
     },
     [activeTab, sendInput],
   )
 
-  const handleCloseDebugPanel = useCallback(function handleCloseDebugPanel() {
+  const handleCloseDebugPanel = useCallback(function () {
     setShowDebugPanel(false)
   }, [])
 
   const focusActiveTerminal = useCallback(
-    function focusActiveTerminal() {
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- runtime safety
+    function () {
       if (!activeTab) return
       const terminal = terminalMapRef.current.get(activeTab.id)
       terminal?.focus()
@@ -277,7 +269,7 @@ export function TerminalWorkspace({
     [activeTab],
   )
 
-  const closeTabResources = useCallback(async function closeTabResources(
+  const closeTabResources = useCallback(async function (
     tabId: string,
     sessionId: string | null,
   ) {
@@ -307,7 +299,7 @@ export function TerminalWorkspace({
   }, [])
 
   const handleCloseTab = useCallback(
-    function handleCloseTab(tab: TerminalTab) {
+    function (tab: TerminalTab) {
       void closeTabResources(tab.id, tab.sessionId)
       closeTab(tab.id)
     },
@@ -315,7 +307,7 @@ export function TerminalWorkspace({
   )
 
   const handleClosePanel = useCallback(
-    function handleClosePanel() {
+    function () {
       const currentTabs = useTerminalPanelStore.getState().tabs
       for (const tab of currentTabs) {
         void closeTabResources(tab.id, tab.sessionId)
@@ -328,7 +320,7 @@ export function TerminalWorkspace({
   )
 
   const connectTab = useCallback(
-    async function connectTab(tab: TerminalTab) {
+    async function (tab: TerminalTab) {
       if (connectedRef.current.has(tab.id)) return
       const terminal = terminalMapRef.current.get(tab.id)
       if (!terminal) return
@@ -372,6 +364,7 @@ export function TerminalWorkspace({
       const FLUSH_MS = 80 // ~12fps — generous gaps for input
       const MAX_BUF = 8192 // drop old data if buffer overflows (screen redraws)
       function flushWrites() {
+        if (flushTimer) clearTimeout(flushTimer)
         flushTimer = null
         if (writeBuf && terminal) {
           const chunk = writeBuf
@@ -388,14 +381,17 @@ export function TerminalWorkspace({
         if (!flushTimer) flushTimer = setTimeout(flushWrites, FLUSH_MS)
       }
 
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- runtime safety
-      while (true) {
-        const readState = await reader.read().catch(function onReadError() {
-          return { done: true, value: undefined }
-        })
+      let readState = await reader.read().catch(function onReadError() {
+        return { done: true, value: undefined }
+      })
+      while (!readState.done) {
         const value = readState.value
-        if (readState.done) break
-        if (!value) continue
+        if (!value) {
+          readState = await reader.read().catch(function onReadError() {
+            return { done: true, value: undefined }
+          })
+          continue
+        }
 
         buffer += decoder.decode(value, { stream: true })
         const blocks = buffer.split('\n\n')
@@ -458,10 +454,13 @@ export function TerminalWorkspace({
             terminal.writeln('\r\n[terminal] connection error\r\n')
           }
         }
+
+        readState = await reader.read().catch(function onReadError() {
+          return { done: true, value: undefined }
+        })
       }
 
-      // Flush any remaining buffered writes
-      clearTimeout(flushTimer as ReturnType<typeof setTimeout>)
+      // Flush any remaining buffered writes (flushWrites cancels any pending timer)
       flushWrites()
 
       const latestTab = useTerminalPanelStore
@@ -518,7 +517,7 @@ export function TerminalWorkspace({
   )
 
   const ensureTerminalForTab = useCallback(
-    function ensureTerminalForTab(tab: TerminalTab) {
+    function (tab: TerminalTab) {
       if (terminalMapRef.current.has(tab.id)) return
       const container = containerMapRef.current.get(tab.id)
       if (!container) return
@@ -569,7 +568,7 @@ export function TerminalWorkspace({
   )
 
   const handleCreateTab = useCallback(
-    function handleCreateTab() {
+    function () {
       const newTabId = createTab(DEFAULT_TERMINAL_CWD)
       window.setTimeout(function focusNewTab() {
         const tab = useTerminalPanelStore
@@ -723,7 +722,6 @@ export function TerminalWorkspace({
       <div className="flex h-8 items-center border-b border-primary-300 bg-primary-100 px-1">
         <div className="flex min-w-0 flex-1 items-center overflow-x-auto">
           {tabs.map(function renderTab(tab) {
-            // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- runtime safety
             const isActive = tab.id === activeTab?.id
             return (
               <button
@@ -870,7 +868,6 @@ export function TerminalWorkspace({
         style={{ backgroundColor: TERMINAL_BG }}
       >
         {tabs.map(function renderTerminal(tab) {
-          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- runtime safety
           const isActive = tab.id === activeTab?.id
           return (
             <div

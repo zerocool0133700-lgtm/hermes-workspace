@@ -18,12 +18,11 @@ import {
   textFromMessage,
 } from './utils'
 import {
-  
   advanceStickyStreamingText,
   createOptimisticMessage,
   createResponseWaitSnapshot,
   isTerminalActiveRunStatus,
-  shouldClearWaitingForAssistantMessage
+  shouldClearWaitingForAssistantMessage,
 } from './chat-screen-utils'
 import {
   appendHistoryMessage,
@@ -71,7 +70,7 @@ import type {
   ChatRunCommandDetail,
   ChatSubmitSelectionDetail,
 } from './chat-events'
-import type {ResponseWaitSnapshot} from './chat-screen-utils';
+import type { ResponseWaitSnapshot } from './chat-screen-utils'
 import type {
   ChatComposerAttachment,
   ChatComposerHandle,
@@ -80,7 +79,7 @@ import type {
 } from './components/chat-composer'
 import type { ApprovalRequest } from '@/screens/gateway/lib/approvals-store'
 import type { ChatAttachment, ChatMessage, SessionMeta } from './types'
-import type {AgentActivity} from '@/stores/chat-activity-store';
+import type { AgentActivity } from '@/stores/chat-activity-store'
 import { useChatSettingsStore } from '@/hooks/use-chat-settings'
 import { playChatComplete } from '@/lib/sounds'
 import {
@@ -111,10 +110,12 @@ import { useResearchCard } from '@/hooks/use-research-card'
 // MOBILE_TAB_BAR_OFFSET removed — tab bar always hidden in chat
 import { useTapDebug } from '@/hooks/use-tap-debug'
 import { useChatMode } from '@/hooks/use-chat-mode'
-import {  useChatActivityStore } from '@/stores/chat-activity-store'
+import { useChatActivityStore } from '@/stores/chat-activity-store'
 
 export let _localModelOverride = ''
-export function setLocalModelOverride(model: string) { _localModelOverride = model }
+export function setLocalModelOverride(model: string) {
+  _localModelOverride = model
+}
 
 type ChatScreenProps = {
   activeFriendlyId: string
@@ -235,7 +236,7 @@ function exportConversationTranscript(payload: {
       const text = textFromMessage(message).trim()
       const attachments = Array.isArray(message.attachments)
         ? message.attachments
-            .map((attachment) => attachment?.name?.trim())
+            .map((attachment) => attachment.name?.trim())
             .filter((value): value is string => Boolean(value))
         : []
 
@@ -293,11 +294,11 @@ function messageFallbackSignature(message: ChatMessage): string {
     ? message.attachments
         .map((attachment) => {
           const name =
-            typeof attachment?.name === 'string' ? attachment.name : ''
+            typeof attachment.name === 'string' ? attachment.name : ''
           const size =
-            typeof attachment?.size === 'number' ? String(attachment.size) : ''
+            typeof attachment.size === 'number' ? String(attachment.size) : ''
           const type =
-            typeof attachment?.contentType === 'string'
+            typeof attachment.contentType === 'string'
               ? attachment.contentType
               : ''
           return `${name}:${size}:${type}`
@@ -396,13 +397,11 @@ function getMessageAttachmentSignature(message: ChatMessage): string {
 
   return message.attachments
     .map((attachment) => {
-      const name = typeof attachment?.name === 'string' ? attachment.name : ''
+      const name = typeof attachment.name === 'string' ? attachment.name : ''
       const size =
-        typeof attachment?.size === 'number' ? String(attachment.size) : ''
+        typeof attachment.size === 'number' ? String(attachment.size) : ''
       const type =
-        typeof attachment?.contentType === 'string'
-          ? attachment.contentType
-          : ''
+        typeof attachment.contentType === 'string' ? attachment.contentType : ''
       return `${name}:${size}:${type}`
     })
     .sort()
@@ -509,7 +508,13 @@ export function ChatScreen({
     if (typeof window === 'undefined') return 'low'
     const key = `claude-thinking-${activeFriendlyId || 'new'}`
     const stored = window.sessionStorage.getItem(key)
-    if (stored === 'off' || stored === 'low' || stored === 'medium' || stored === 'high' || stored === 'adaptive')
+    if (
+      stored === 'off' ||
+      stored === 'low' ||
+      stored === 'medium' ||
+      stored === 'high' ||
+      stored === 'adaptive'
+    )
       return stored
     return 'low'
   })
@@ -519,7 +524,8 @@ export function ChatScreen({
   useEffect(() => {
     if (typeof window === 'undefined') return
     const key = `claude-thinking-${activeFriendlyId || 'new'}`
-    thinkingInitializedByUserRef.current = window.sessionStorage.getItem(key) !== null
+    thinkingInitializedByUserRef.current =
+      window.sessionStorage.getItem(key) !== null
   }, [activeFriendlyId])
   const { alertOpen, alertThreshold, alertPercent, dismissAlert } =
     useContextAlert()
@@ -661,8 +667,9 @@ export function ChatScreen({
   // On remount, check if the server still has an active run for this session.
   // If so, re-set waitingForResponse in the store so the UI shows the spinner.
   useActiveRunCheck({
-    sessionKey: resolvedSessionKey ?? '',
-    enabled: !isNewChat && Boolean(resolvedSessionKey) && historyQuery.isSuccess,
+    sessionKey: resolvedSessionKey,
+    enabled:
+      !isNewChat && Boolean(resolvedSessionKey) && historyQuery.isSuccess,
     onCheckComplete: useCallback(() => {
       setActiveRunCheckDone(true)
     }, []),
@@ -688,9 +695,9 @@ export function ChatScreen({
       : isNewChat
         ? 'new'
         : resolvedSessionKey ||
-        sessionKeyForHistory ||
-        activeCanonicalKey ||
-        'main',
+          sessionKeyForHistory ||
+          activeCanonicalKey ||
+          'main',
     friendlyId: portableChatFriendlyId,
     historyMessages,
     portableMode: isPortableMode,
@@ -722,7 +729,9 @@ export function ChatScreen({
       if (
         approvalId &&
         currentApprovals.some((entry) => {
-          return entry.status === 'pending' && entry.gatewayApprovalId === approvalId
+          return (
+            entry.status === 'pending' && entry.gatewayApprovalId === approvalId
+          )
         })
       ) {
         setPendingApprovals(
@@ -912,10 +921,7 @@ export function ChatScreen({
     // hasn't processed the user's POST yet, the optimistic message vanishes.
     const historySessionKey = isPortableMode
       ? 'main'
-      : activeSessionKey ||
-        sessionKeyForHistory ||
-        resolvedSessionKey ||
-        'main'
+      : activeSessionKey || sessionKeyForHistory || resolvedSessionKey || 'main'
     const reInjectOptimistic = snapshotOptimisticUserMessages(
       queryClient,
       portableChatFriendlyId,
@@ -1005,7 +1011,8 @@ export function ChatScreen({
     ],
     queryFn: async () => {
       try {
-        const statusSessionKey = resolvedSessionKey || activeFriendlyId || 'main'
+        const statusSessionKey =
+          resolvedSessionKey || activeFriendlyId || 'main'
         const query = statusSessionKey
           ? `?sessionKey=${encodeURIComponent(statusSessionKey)}`
           : ''
@@ -1037,11 +1044,24 @@ export function ChatScreen({
       try {
         const res = await fetch('/api/hermes-config')
         if (!res.ok) return 'low'
-        const data = await res.json() as { config?: Record<string, unknown> }
+        const data = (await res.json()) as {
+          config?: Record<string, unknown>
+        } | null
         const agentSection = data?.config?.agent
-        if (agentSection && typeof agentSection === 'object' && !Array.isArray(agentSection)) {
-          const effort = (agentSection as Record<string, unknown>).reasoning_effort
-          if (effort === 'off' || effort === 'low' || effort === 'medium' || effort === 'high') return effort
+        if (
+          agentSection &&
+          typeof agentSection === 'object' &&
+          !Array.isArray(agentSection)
+        ) {
+          const effort = (agentSection as Record<string, unknown>)
+            .reasoning_effort
+          if (
+            effort === 'off' ||
+            effort === 'low' ||
+            effort === 'medium' ||
+            effort === 'high'
+          )
+            return effort
         }
         return 'low'
       } catch {
@@ -1093,9 +1113,7 @@ export function ChatScreen({
     if (thinkingInitializedByUserRef.current) return
     const configEffort = reasoningEffortQuery.data
     if (!configEffort) return
-    if (configEffort === 'off' || configEffort === 'low' || configEffort === 'medium' || configEffort === 'high') {
-      setThinkingLevel(configEffort)
-    }
+    setThinkingLevel(configEffort)
   }, [reasoningEffortQuery.data])
 
   // Persist thinking level changes to sessionStorage
@@ -1128,8 +1146,7 @@ export function ChatScreen({
     cancelStreaming,
   } = useStreamingMessage({
     pinMainSession:
-      activeFriendlyId === 'main' &&
-      (resolvedSessionKey || activeFriendlyId || 'main') === 'main',
+      activeFriendlyId === 'main' && resolvedSessionKey === 'main',
     onSessionResolved: useCallback(
       ({
         sessionKey,
@@ -1177,36 +1194,39 @@ export function ChatScreen({
       },
       [queryClient],
     ),
-    onComplete: useCallback((message: ChatMessage) => {
-      const activeSend = activeSendRef.current
-      if (activeSend?.clientId) {
-        updateHistoryMessageByClientIdEverywhere(
-          queryClient,
-          activeSend.clientId,
-          (message) => ({
-            ...message,
-            status: 'done',
-          }),
-        )
-      }
-      if (activeSend?.sessionKey) {
-        persistRecoveryMessage(activeSend.sessionKey, message)
-        clearPendingSendForSession(
-          activeSend.sessionKey,
-          activeSend.friendlyId,
-        )
-      }
-      activeSendRef.current = null
-      refreshHistoryRef.current()
-      setSending(false)
-      // Clear waitingForResponse so ThinkingBubble hides and message renders
-      streamFinish()
-      // Play notification sound if the user opted in (Settings → Chat).
-      // Read directly from the store to avoid re-creating this callback on every settings change.
-      if (useChatSettingsStore.getState().settings.soundOnChatComplete) {
-        playChatComplete()
-      }
-    }, [queryClient, streamFinish]),
+    onComplete: useCallback(
+      (message: ChatMessage) => {
+        const activeSend = activeSendRef.current
+        if (activeSend?.clientId) {
+          updateHistoryMessageByClientIdEverywhere(
+            queryClient,
+            activeSend.clientId,
+            (historyMessage) => ({
+              ...historyMessage,
+              status: 'done',
+            }),
+          )
+        }
+        if (activeSend?.sessionKey) {
+          persistRecoveryMessage(activeSend.sessionKey, message)
+          clearPendingSendForSession(
+            activeSend.sessionKey,
+            activeSend.friendlyId,
+          )
+        }
+        activeSendRef.current = null
+        refreshHistoryRef.current()
+        setSending(false)
+        // Clear waitingForResponse so ThinkingBubble hides and message renders
+        streamFinish()
+        // Play notification sound if the user opted in (Settings → Chat).
+        // Read directly from the store to avoid re-creating this callback on every settings change.
+        if (useChatSettingsStore.getState().settings.soundOnChatComplete) {
+          playChatComplete()
+        }
+      },
+      [queryClient, streamFinish],
+    ),
     onError: useCallback(
       (messageText: string) => {
         const activeSend = activeSendRef.current
@@ -1289,7 +1309,7 @@ export function ChatScreen({
   // wanted in either session).
   const navCancelKeyRef = useRef<string | null>(null)
   useEffect(() => {
-    const navKey = `${activeCanonicalKey ?? ''}::${isNewChat ? 'new' : activeFriendlyId}`
+    const navKey = `${activeCanonicalKey}::${isNewChat ? 'new' : activeFriendlyId}`
     if (navCancelKeyRef.current === null) {
       navCancelKeyRef.current = navKey
       return
@@ -1310,10 +1330,12 @@ export function ChatScreen({
     activeRealtimeStreamingText,
     activeIsRealtimeStreaming,
   )
-  const stickyStreamingTextRef = useRef<{ runId: string | null; text: string }>({
-    runId: null,
-    text: '',
-  })
+  const stickyStreamingTextRef = useRef<{ runId: string | null; text: string }>(
+    {
+      runId: null,
+      text: '',
+    },
+  )
   stickyStreamingTextRef.current = advanceStickyStreamingText({
     isStreaming: activeIsRealtimeStreaming,
     runId: streamingRunId ?? null,
@@ -1449,11 +1471,12 @@ export function ChatScreen({
       // message is potentially the same response — match by text overlap
       if (streamingText.length > 0) {
         const msgText = textFromMessage(msg).trim()
-        if (msgText.length > 0 && (
-          msgText === streamingText ||
-          msgText.startsWith(streamingText) ||
-          streamingText.startsWith(msgText)
-        )) {
+        if (
+          msgText.length > 0 &&
+          (msgText === streamingText ||
+            msgText.startsWith(streamingText) ||
+            streamingText.startsWith(msgText))
+        ) {
           return true
         }
       }
@@ -1461,10 +1484,15 @@ export function ChatScreen({
       // calls as the streaming placeholder, it's the same response
       if (streamToolCalls.length > 0) {
         const msgContent = Array.isArray(msg.content) ? msg.content : []
-        const msgToolCalls = msgContent.filter((p: any) => p.type === 'toolCall')
-        if (msgToolCalls.length > 0 && msgToolCalls.length === streamToolCalls.length) {
+        const msgToolCalls = msgContent.filter(
+          (p: any) => p.type === 'toolCall',
+        )
+        if (
+          msgToolCalls.length > 0 &&
+          msgToolCalls.length === streamToolCalls.length
+        ) {
           return streamToolCalls.every((stc: any) =>
-            msgToolCalls.some((mtc: any) => mtc.name === stc.name)
+            msgToolCalls.some((mtc: any) => mtc.name === stc.name),
           )
         }
       }
@@ -1515,7 +1543,7 @@ export function ChatScreen({
 
   const derivedStreamingInfo = useMemo(() => {
     if (activeIsRealtimeStreaming) {
-      const last = finalDisplayMessages[finalDisplayMessages.length - 1]
+      const last = finalDisplayMessages.at(-1)
       const id = isPortableMode
         ? localStreamingMessageId
         : last?.role === 'assistant'
@@ -1524,7 +1552,7 @@ export function ChatScreen({
       return { isStreaming: true, streamingMessageId: id }
     }
     if (waitingForResponse && finalDisplayMessages.length > 0) {
-      const last = finalDisplayMessages[finalDisplayMessages.length - 1]
+      const last = finalDisplayMessages.at(-1)
       if (last && last.role === 'assistant') {
         const isStreamingPlaceholder =
           (last as any).__streamingStatus === 'streaming'
@@ -1621,9 +1649,9 @@ export function ChatScreen({
   }, [suggestion, resolvedSessionKey, dismiss])
 
   // Sync chat activity to global store for sidebar orchestrator avatar
-  const setLocalActivity = useChatActivityStore(
-    (s) => s.setLocalActivity,
-  ) as (next: AgentActivity) => void
+  const setLocalActivity = useChatActivityStore((s) => s.setLocalActivity) as (
+    next: AgentActivity,
+  ) => void
   useEffect(() => {
     if (liveToolActivity.length > 0) {
       setLocalActivity('tool-use')
@@ -1652,21 +1680,20 @@ export function ChatScreen({
     staleTime: 30_000,
     refetchInterval: 60_000, // Re-check every 60s to clear stale errors
   })
-  // Don't show errors for new chats or when SSE is connected
-  const statusError =
-    !isNewChat && connectionState !== 'connected'
-      ? statusQuery.error instanceof Error
+  // Don't show errors for new chats.
+  const statusError = !isNewChat
+    ? statusQuery.error instanceof Error
+      ? {
+          message: statusQuery.error.message,
+          status: (statusQuery.error as Error & { status?: number }).status,
+        }
+      : statusQuery.data && !statusQuery.data.ok
         ? {
-            message: statusQuery.error.message,
-            status: (statusQuery.error as Error & { status?: number }).status,
+            message: statusQuery.data.error || 'Hermes Agent unavailable',
+            status: statusQuery.data.status,
           }
-        : statusQuery.data && !statusQuery.data.ok
-          ? {
-              message: statusQuery.data.error || 'Hermes Agent unavailable',
-              status: statusQuery.data.status,
-            }
-          : null
-      : null
+        : null
+    : null
   const serverError = statusError?.message ?? sessionsError ?? historyError
   const serverErrorStatus = statusError?.status
   const showErrorNotice = Boolean(serverError) && !isNewChat
@@ -1711,7 +1738,7 @@ export function ChatScreen({
       void historyQuery.refetch()
     }, 2000)
     return () => window.clearTimeout(timer)
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps -- mount-only
+  }, [])
 
   useEffect(() => {
     function handleSSEDrop() {
@@ -1911,7 +1938,7 @@ export function ChatScreen({
    * Response arrives via SSE stream, not via this function.
    */
   const sendMessage = useCallback(
-    function sendMessage(
+    function (
       sessionKey: string,
       friendlyId: string,
       body: string,
@@ -2128,7 +2155,7 @@ export function ChatScreen({
   ])
 
   const retryQueuedMessage = useCallback(
-    function retryQueuedMessage(message: ChatMessage, mode: 'manual' | 'auto') {
+    function (message: ChatMessage, mode: 'manual' | 'auto') {
       if (!isRetryableQueuedMessage(message)) return false
 
       const body = textFromMessage(message).trim()
@@ -2196,7 +2223,7 @@ export function ChatScreen({
   )
 
   const flushRetryableMessages = useCallback(
-    function flushRetryableMessages() {
+    function () {
       for (const message of finalDisplayMessages) {
         retryQueuedMessage(message, 'auto')
       }
@@ -2205,7 +2232,7 @@ export function ChatScreen({
   )
 
   const handleRetryMessage = useCallback(
-    function handleRetryMessage(message: ChatMessage) {
+    function (message: ChatMessage) {
       const retryKey = getRetryMessageKey(message)
       retriedQueuedMessageKeysRef.current.delete(retryKey)
       retryQueuedMessage(message, 'manual')
@@ -2214,14 +2241,7 @@ export function ChatScreen({
   )
 
   useEffect(() => {
-    if (false) {
-      // Server connection checks removed — Hermes Agent uses direct API
-      hasSeenDisconnectRef.current = true
-      retriedQueuedMessageKeysRef.current.clear()
-      return
-    }
-
-    if (connectionState === 'connected' && hasSeenDisconnectRef.current) {
+    if (hasSeenDisconnectRef.current) {
       hasSeenDisconnectRef.current = false
       flushRetryableMessages()
     }
@@ -2303,11 +2323,11 @@ export function ChatScreen({
       queryClient.setQueryData(
         chatQueryKeys.sessions,
         function upsert(existing: unknown) {
-          const sessions = Array.isArray(existing)
+          const sessionList = Array.isArray(existing)
             ? (existing as Array<SessionMeta>)
             : []
           const now = Date.now()
-          const existingIndex = sessions.findIndex((session) => {
+          const existingIndex = sessionList.findIndex((session) => {
             return (
               session.friendlyId === friendlyId || session.key === friendlyId
             )
@@ -2322,11 +2342,11 @@ export function ChatScreen({
                 lastMessage,
                 titleStatus: 'idle',
               },
-              ...sessions,
+              ...sessionList,
             ]
           }
 
-          return sessions.map((session, index) => {
+          return sessionList.map((session, index) => {
             if (index !== existingIndex) return session
             return {
               ...session,
@@ -2560,7 +2580,8 @@ export function ChatScreen({
 
   useEffect(() => {
     function handleRunCommand(event: Event) {
-      const detail = (event as CustomEvent<ChatRunCommandDetail>).detail
+      const detail = (event as CustomEvent<ChatRunCommandDetail | undefined>)
+        .detail
       if (!detail?.command) return
       runPaletteSlashCommand(detail.command)
     }
@@ -2573,8 +2594,10 @@ export function ChatScreen({
 
   useEffect(() => {
     function handleSubmitSelection(event: Event) {
-      const detail = (event as CustomEvent<ChatSubmitSelectionDetail>).detail
-      const text = detail?.text?.trim()
+      const detail = (
+        event as CustomEvent<ChatSubmitSelectionDetail | undefined>
+      ).detail
+      const text = detail?.text.trim()
       if (!text) return
       send(text, [], false, commandHelpers)
     }
@@ -2656,13 +2679,6 @@ export function ChatScreen({
       />
     )
   }, [serverError, serverErrorStatus, handleRefetch, showErrorNotice])
-
-  const mobileHeaderStatus: 'connected' | 'connecting' | 'disconnected' =
-    connectionState === 'connected'
-      ? 'connected'
-      : statusQuery.data?.ok === false || statusQuery.isError
-        ? 'disconnected'
-        : 'connecting'
 
   const activeHeaderToolName =
     liveToolActivity[0]?.name || activeToolCalls[0]?.name || undefined
@@ -2761,7 +2777,7 @@ export function ChatScreen({
               renamingTitle={renamingSessionTitle}
               wrapperRef={headerRef}
               onOpenSessions={() => setSessionsOpen(true)}
-              sessions={sessions ?? []}
+              sessions={sessions}
               activeFriendlyId={activeFriendlyId}
               onSelectSession={(key) =>
                 void navigate({
@@ -2775,7 +2791,7 @@ export function ChatScreen({
               dataUpdatedAt={historyQuery.dataUpdatedAt}
               onRefresh={handleRefreshHistory}
               agentModel={currentModel}
-              agentConnected={mobileHeaderStatus === 'connected'}
+              agentConnected={true}
               onOpenAgentDetails={handleOpenAgentDetails}
               pullOffset={0}
               statusMode={headerStatusMode}

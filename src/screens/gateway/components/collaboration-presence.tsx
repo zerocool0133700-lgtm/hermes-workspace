@@ -16,6 +16,12 @@ type PresenceLeave = {
 
 type PresenceMessage = PresenceHeartbeat | PresenceLeave
 
+function isPresenceMessage(value: unknown): value is PresenceMessage {
+  if (!value || typeof value !== 'object') return false
+  const type = (value as { type?: unknown }).type
+  return type === 'heartbeat' || type === 'leave'
+}
+
 const CHANNEL_NAME = 'clawsuite-presence'
 const LOCAL_STORAGE_KEY = 'clawsuite:presence:users'
 const SESSION_USER_ID_KEY = 'clawsuite:presence:user-id'
@@ -37,8 +43,10 @@ function readStoredUsers(): Record<string, PresenceHeartbeat> {
   try {
     const raw = window.localStorage.getItem(LOCAL_STORAGE_KEY)
     if (!raw) return {}
-    const parsed = JSON.parse(raw) as Record<string, PresenceHeartbeat>
-    return parsed && typeof parsed === 'object' ? parsed : {}
+    const parsed: unknown = JSON.parse(raw)
+    return parsed && typeof parsed === 'object'
+      ? (parsed as Record<string, PresenceHeartbeat>)
+      : {}
   } catch {
     return {}
   }
@@ -49,7 +57,10 @@ function persistUsers(users: Record<string, PresenceHeartbeat>) {
   window.localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(users))
 }
 
-function pruneStaleUsers(users: Record<string, PresenceHeartbeat>, now: number): Record<string, PresenceHeartbeat> {
+function pruneStaleUsers(
+  users: Record<string, PresenceHeartbeat>,
+  now: number,
+): Record<string, PresenceHeartbeat> {
   const next: Record<string, PresenceHeartbeat> = {}
   for (const [id, user] of Object.entries(users)) {
     if (now - user.timestamp <= STALE_AFTER_MS) next[id] = user
@@ -79,7 +90,9 @@ function getOrCreateIdentity() {
 export function CollaborationPresence() {
   const identityRef = useRef(getOrCreateIdentity())
   const channelRef = useRef<BroadcastChannel | null>(null)
-  const [usersById, setUsersById] = useState<Record<string, PresenceHeartbeat>>({})
+  const [usersById, setUsersById] = useState<Record<string, PresenceHeartbeat>>(
+    {},
+  )
 
   useEffect(() => {
     const syncFromStorage = () => {
@@ -90,8 +103,14 @@ export function CollaborationPresence() {
 
     const upsertHeartbeat = (heartbeat: PresenceHeartbeat) => {
       setUsersById((prev) => {
-        const next = pruneStaleUsers({ ...prev, [heartbeat.userId]: heartbeat }, Date.now())
-        const merged = pruneStaleUsers({ ...readStoredUsers(), ...next }, Date.now())
+        const next = pruneStaleUsers(
+          { ...prev, [heartbeat.userId]: heartbeat },
+          Date.now(),
+        )
+        const merged = pruneStaleUsers(
+          { ...readStoredUsers(), ...next },
+          Date.now(),
+        )
         persistUsers(merged)
         return next
       })
@@ -101,7 +120,10 @@ export function CollaborationPresence() {
       setUsersById((prev) => {
         const next = { ...prev }
         delete next[userId]
-        const merged = pruneStaleUsers({ ...readStoredUsers(), ...next }, Date.now())
+        const merged = pruneStaleUsers(
+          { ...readStoredUsers(), ...next },
+          Date.now(),
+        )
         delete merged[userId]
         persistUsers(merged)
         return next
@@ -126,9 +148,9 @@ export function CollaborationPresence() {
     try {
       const channel = new BroadcastChannel(CHANNEL_NAME)
       channelRef.current = channel
-      channel.onmessage = (event: MessageEvent<PresenceMessage>) => {
+      channel.onmessage = (event: MessageEvent<unknown>) => {
         const message = event.data
-        if (!message || typeof message !== 'object') return
+        if (!isPresenceMessage(message)) return
         if (message.type === 'heartbeat') upsertHeartbeat(message)
         if (message.type === 'leave') removeUser(message.userId)
       }
@@ -142,8 +164,14 @@ export function CollaborationPresence() {
     }
     window.addEventListener('storage', storageHandler)
 
-    const heartbeatInterval = window.setInterval(sendHeartbeat, HEARTBEAT_INTERVAL_MS)
-    const cleanupInterval = window.setInterval(syncFromStorage, HEARTBEAT_INTERVAL_MS)
+    const heartbeatInterval = window.setInterval(
+      sendHeartbeat,
+      HEARTBEAT_INTERVAL_MS,
+    )
+    const cleanupInterval = window.setInterval(
+      syncFromStorage,
+      HEARTBEAT_INTERVAL_MS,
+    )
 
     return () => {
       window.removeEventListener('storage', storageHandler)
@@ -200,8 +228,10 @@ export function CollaborationPresence() {
           )
         })}
       </div>
-      {overflowCount > 0 ? <span className="text-primary-400">+{overflowCount} more</span> : null}
-      <span className="hidden sm:inline text-primary-300">{isSolo ? 'Only you' : `${users.length} viewing`}</span>
+      {overflowCount > 0 ? (
+        <span className="text-primary-400">+{overflowCount} more</span>
+      ) : null}
+      <span className="hidden sm:inline text-primary-300">{`${users.length} viewing`}</span>
     </div>
   )
 }

@@ -32,7 +32,7 @@ type SidebarSessionsProps = {
   onRetry: () => void
 }
 
-export const SidebarSessions = memo(function SidebarSessions({
+export const SidebarSessions = memo(function SidebarSessionsInner({
   sessions,
   activeFriendlyId,
   defaultOpen = true,

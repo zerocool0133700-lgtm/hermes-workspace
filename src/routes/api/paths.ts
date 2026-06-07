@@ -5,12 +5,14 @@ import { json } from '@tanstack/react-start'
 import { isAuthenticated } from '../../server/auth-middleware'
 
 const CLAUDE_HOME =
-  process.env.HERMES_HOME || process.env.CLAUDE_HOME || path.join(os.homedir(), '.hermes')
+  process.env.HERMES_HOME ||
+  process.env.CLAUDE_HOME ||
+  path.join(os.homedir(), '.hermes')
 
 export const Route = createFileRoute('/api/paths')({
   server: {
     handlers: {
-      GET: async ({ request }) => {
+      GET: ({ request }) => {
         if (!isAuthenticated(request)) {
           return json({ ok: false, error: 'Unauthorized' }, { status: 401 })
         }

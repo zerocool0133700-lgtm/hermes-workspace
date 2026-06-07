@@ -30,7 +30,7 @@ type NpcPersona = {
   lore: string
 }
 
-const PERSONAS: Record<string, NpcPersona> = {
+const PERSONAS: Record<string, NpcPersona | undefined> = {
   athena: {
     id: 'athena',
     name: 'Athena',
@@ -109,7 +109,10 @@ function looksLikeProviderError(text: string): boolean {
   if (t.length < 1 || t.length > 4000) return false
   return (
     /^error code:\s*\d+/i.test(t) ||
-    /\b(401|403|429|500|502|503)\b/.test(t) && /\b(error|invalid|authentication|token|rate.?limit|quota|usage)\b/i.test(t) ||
+    (/\b(401|403|429|500|502|503)\b/.test(t) &&
+      /\b(error|invalid|authentication|token|rate.?limit|quota|usage)\b/i.test(
+        t,
+      )) ||
     /token_invalidated/i.test(t) ||
     /authentication[_\s]token/i.test(t) ||
     /please try signing in again/i.test(t) ||
@@ -155,7 +158,8 @@ export const Route = createFileRoute('/api/playground-npc')({
         }
         const npcId = (body.npcId || '').toLowerCase()
         const playerMessage = (body.playerMessage || '').trim()
-        if (!npcId || !PERSONAS[npcId]) {
+        const persona = npcId ? PERSONAS[npcId] : undefined
+        if (!persona) {
           return json({ error: 'unknown npcId' }, { status: 400 })
         }
         if (!playerMessage) {
@@ -165,16 +169,22 @@ export const Route = createFileRoute('/api/playground-npc')({
           return json({ error: 'message too long' }, { status: 400 })
         }
 
-        const persona = PERSONAS[npcId]
-
         // Verify gateway is reachable before paying for the call.
         try {
           const caps = await ensureGatewayProbed()
           if (!caps.chatCompletions) {
-            return json({ reply: FALLBACK(npcId, playerMessage), ms: Date.now() - t0, fallback: true })
+            return json({
+              reply: FALLBACK(npcId, playerMessage),
+              ms: Date.now() - t0,
+              fallback: true,
+            })
           }
         } catch {
-          return json({ reply: FALLBACK(npcId, playerMessage), ms: Date.now() - t0, fallback: true })
+          return json({
+            reply: FALLBACK(npcId, playerMessage),
+            ms: Date.now() - t0,
+            fallback: true,
+          })
         }
 
         const messages = [
@@ -193,12 +203,20 @@ export const Route = createFileRoute('/api/playground-npc')({
           })
           const trimmed = String(reply || '').trim()
           if (!trimmed) {
-            return json({ reply: FALLBACK(npcId, playerMessage), ms: Date.now() - t0, fallback: true })
+            return json({
+              reply: FALLBACK(npcId, playerMessage),
+              ms: Date.now() - t0,
+              fallback: true,
+            })
           }
           // Detect provider error text leaking through as assistant content
           // (some gateways wrap upstream auth/rate errors into the message body).
           if (looksLikeProviderError(trimmed)) {
-            return json({ reply: FALLBACK(npcId, playerMessage), ms: Date.now() - t0, fallback: true })
+            return json({
+              reply: FALLBACK(npcId, playerMessage),
+              ms: Date.now() - t0,
+              fallback: true,
+            })
           }
           return json({ reply: trimmed, ms: Date.now() - t0 })
         } catch (e: any) {

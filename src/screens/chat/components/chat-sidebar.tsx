@@ -35,6 +35,7 @@ import { ProvidersDialog } from './providers-dialog'
 import { SessionRenameDialog } from './sidebar/session-rename-dialog'
 import { SessionDeleteDialog } from './sidebar/session-delete-dialog'
 import { SidebarSessions } from './sidebar/sidebar-sessions'
+import type { LinkProps } from '@tanstack/react-router'
 import type { ChatOpenSettingsDetail } from '../chat-events'
 import type { SessionMeta } from '../types'
 import { t } from '@/lib/i18n'
@@ -140,9 +141,9 @@ type ChatSidebarProps = {
 
 type NavItemDef = {
   kind: 'link' | 'button'
-  to?: string
-  search?: Record<string, unknown>
-  hash?: string
+  to?: LinkProps['to']
+  search?: LinkProps['search']
+  hash?: LinkProps['hash']
   icon: unknown
   label: string
   active: boolean
@@ -162,8 +163,8 @@ export async function fetchWorkspaceStats(): Promise<WorkspaceStats | null> {
   }
 }
 
-export async function fetchWorkspaceProjectShortcuts(): Promise<Array<never>> {
-  return []
+export function fetchWorkspaceProjectShortcuts(): Promise<Array<never>> {
+  return Promise.resolve([])
 }
 
 function NavItem({
@@ -225,7 +226,8 @@ function NavItem({
               style={
                 item.badge === 'NEW'
                   ? {
-                      background: 'linear-gradient(180deg, #fde68a 0%, #fbbf24 50%, #d4a017 100%)',
+                      background:
+                        'linear-gradient(180deg, #fde68a 0%, #fbbf24 50%, #d4a017 100%)',
                       color: '#0b1320',
                       boxShadow: '0 0 8px rgba(250,204,21,0.4)',
                       letterSpacing: '0.08em',
@@ -547,7 +549,9 @@ function ChatSidebarComponent({
   useEffect(() => {
     function handleOpenSettingsEvent(event: Event) {
       const detail = (event as CustomEvent<ChatOpenSettingsDetail>).detail
-      handleOpenSettings(detail.section === 'appearance' ? 'appearance' : 'claude')
+      handleOpenSettings(
+        detail.section === 'appearance' ? 'appearance' : 'claude',
+      )
     }
 
     window.addEventListener(CHAT_OPEN_SETTINGS_EVENT, handleOpenSettingsEvent)
@@ -851,15 +855,14 @@ function ChatSidebarComponent({
     ...(echoStudioEnabled
       ? [
           {
-            kind: 'link' as const,
+            kind: 'link',
             to: '/echo-studio',
             icon: DashboardSquare01Icon,
             label: 'Echo Studio',
             active: pathname.startsWith('/echo-studio'),
-          },
+          } satisfies NavItemDef,
         ]
       : []),
-
   ]
 
   const knowledgeItems: Array<NavItemDef> = [
@@ -1050,41 +1053,41 @@ function ChatSidebarComponent({
       {/* Hide when VITE_HERMESWORLD_ENABLED is explicitly '0' */}
       {!isVisuallyCollapsed &&
         (import.meta as any).env?.VITE_HERMESWORLD_ENABLED !== '0' && (
-        <div className="px-2 pb-2">
-          <Link
-            to="/playground"
-            onClick={() => onSelectSession?.()}
-            className={cn(
-              buttonVariants({ variant: 'ghost', size: 'sm' }),
-              'group w-full justify-start gap-2.5 px-3 py-2 text-primary-900 hover:bg-primary-200 dark:hover:bg-primary-800',
-              isPlaygroundActive &&
-                'bg-accent-500/10 text-accent-500 hover:bg-accent-50 dark:hover:bg-accent-900/300/15',
-            )}
-            data-tour="hermesworld"
-          >
-            <HugeiconsIcon
-              icon={Castle02Icon}
-              size={20}
-              strokeWidth={1.5}
-              className="size-5 shrink-0"
-              style={{ color: '#facc15' }}
-            />
-            <span>HermesWorld</span>
-            <span
-              className="ml-auto inline-flex min-w-6 items-center justify-center rounded-full px-2 py-0.5 text-[10px] font-bold leading-none"
-              style={{
-                background:
-                  'linear-gradient(180deg, #fde68a 0%, #fbbf24 50%, #d4a017 100%)',
-                color: '#0b1320',
-                boxShadow: '0 0 8px rgba(250,204,21,0.4)',
-                letterSpacing: '0.08em',
-              }}
+          <div className="px-2 pb-2">
+            <Link
+              to="/playground"
+              onClick={() => onSelectSession?.()}
+              className={cn(
+                buttonVariants({ variant: 'ghost', size: 'sm' }),
+                'group w-full justify-start gap-2.5 px-3 py-2 text-primary-900 hover:bg-primary-200 dark:hover:bg-primary-800',
+                isPlaygroundActive &&
+                  'bg-accent-500/10 text-accent-500 hover:bg-accent-50 dark:hover:bg-accent-900/300/15',
+              )}
+              data-tour="hermesworld"
             >
-              NEW
-            </span>
-          </Link>
-        </div>
-      )}
+              <HugeiconsIcon
+                icon={Castle02Icon}
+                size={20}
+                strokeWidth={1.5}
+                className="size-5 shrink-0"
+                style={{ color: '#facc15' }}
+              />
+              <span>HermesWorld</span>
+              <span
+                className="ml-auto inline-flex min-w-6 items-center justify-center rounded-full px-2 py-0.5 text-[10px] font-bold leading-none"
+                style={{
+                  background:
+                    'linear-gradient(180deg, #fde68a 0%, #fbbf24 50%, #d4a017 100%)',
+                  color: '#0b1320',
+                  boxShadow: '0 0 8px rgba(250,204,21,0.4)',
+                  letterSpacing: '0.08em',
+                }}
+              >
+                NEW
+              </span>
+            </Link>
+          </div>
+        )}
 
       {/* ── Scrollable body: nav + sessions ─────────────────────────── */}
       <div className="flex-1 min-h-0 overflow-y-auto scrollbar-thin flex flex-col">

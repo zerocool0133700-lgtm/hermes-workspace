@@ -54,7 +54,7 @@ type ProfileSkillRaw = {
 
 type ProfileSkillsResponse = {
   profile: string
-  items: Array<ProfileSkillRaw>
+  items?: Array<ProfileSkillRaw>
   error?: string
 }
 
@@ -228,14 +228,14 @@ export function SkillsScreen() {
     const explicit = profilesQuery.data?.activeProfile
     if (explicit) return explicit
     const defaultProfile = profiles.find((p) => p.is_default)
-    return defaultProfile?.name ?? profiles[0]?.name ?? ''
+    return defaultProfile?.name ?? profiles.at(0)?.name ?? ''
   }, [profiles, profilesQuery.data?.activeProfile])
 
   // Pick a sensible default once profiles arrive — match the dashboard's
   // pattern (active first, then default, then any).
   useEffect(() => {
     if (!profiles.length || selectedProfile) return
-    setSelectedProfile(activeProfileName || profiles[0]!.name)
+    setSelectedProfile(activeProfileName || profiles[0].name)
   }, [profiles, activeProfileName, selectedProfile])
 
   const effectiveProfile = selectedProfile || activeProfileName
@@ -405,18 +405,13 @@ export function SkillsScreen() {
         const author =
           skill.author ||
           (skill.repo ? skill.repo.split('/')[0] : null) ||
-          (skill.extra as Record<string, unknown>)?.author ||
+          skill.extra?.author ||
           skill.source ||
           'Community'
         const homepage =
-          skill.homepage ||
-          skill.repo ||
-          (skill.extra as Record<string, unknown>)?.homepage ||
-          null
-        const category =
-          skill.category ||
-          (skill.extra as Record<string, unknown>)?.category ||
-          'Productivity'
+          skill.homepage || skill.repo || skill.extra?.homepage || null
+        const skillCategory =
+          skill.category || skill.extra?.category || 'Productivity'
 
         return {
           id: skillId,
@@ -427,7 +422,7 @@ export function SkillsScreen() {
           triggers: skill.tags,
           tags: skill.tags,
           homepage: typeof homepage === 'string' ? homepage : null,
-          category: String(category),
+          category: String(skillCategory),
           icon:
             skill.source === 'github'
               ? '🐙'
@@ -698,9 +693,7 @@ export function SkillsScreen() {
               {tab === 'installed' ? (
                 <select
                   value={category}
-                  onChange={(event) =>
-                    handleCategoryChange(event.target.value)
-                  }
+                  onChange={(event) => handleCategoryChange(event.target.value)}
                   className="h-9 rounded-lg border border-primary-200 bg-primary-100/60 px-3 text-sm text-ink outline-none"
                 >
                   {categories.map((item) => (
@@ -1063,11 +1056,13 @@ function SecurityBadge({
   security?: SecurityRisk
   compact?: boolean
 }) {
-  if (!security) return null
-  const config = SECURITY_BADGE[security.level]
-  if (!config) return null
-
   const [expanded, setExpanded] = useState(false)
+
+  if (!security) return null
+  const config = Object.hasOwn(SECURITY_BADGE, security.level)
+    ? SECURITY_BADGE[security.level]
+    : undefined
+  if (!config) return null
 
   // Compact badge for card grid
   if (compact) {
@@ -1106,7 +1101,9 @@ function SecurityBadge({
 
 function SecurityScanCard({ security }: { security: SecurityRisk }) {
   const [showDetails, setShowDetails] = useState(false)
-  const config = SECURITY_BADGE[security.level]
+  const config = Object.hasOwn(SECURITY_BADGE, security.level)
+    ? SECURITY_BADGE[security.level]
+    : undefined
   if (!config) return null
 
   const summaryText =

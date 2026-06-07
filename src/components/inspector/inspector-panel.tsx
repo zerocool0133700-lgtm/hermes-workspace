@@ -89,7 +89,9 @@ function ArtifactsTab() {
         >
           <div className="flex items-center justify-between gap-2">
             <span className="font-medium">{artifact.text}</span>
-            <span style={{ color: 'var(--theme-accent)' }}>{artifact.time}</span>
+            <span style={{ color: 'var(--theme-accent)' }}>
+              {artifact.time}
+            </span>
           </div>
         </div>
       ))}
@@ -226,12 +228,17 @@ function MemoryTab() {
       })
       .then((json) => {
         if (!cancelled) {
-          const list = Array.isArray(json?.files) ? json.files : []
+          const list: Array<unknown> = Array.isArray(json?.files)
+            ? json.files
+            : []
           setFiles(
-            list.map((entry: Record<string, unknown>) => ({
-              path: String(entry?.path || ''),
-              name: String(entry?.name || entry?.path || ''),
-            })),
+            list.map((entry) => {
+              const record = (entry ?? {}) as Record<string, unknown>
+              return {
+                path: String(record.path || ''),
+                name: String(record.name || record.path || ''),
+              }
+            }),
           )
           setLoading(false)
         }
@@ -325,8 +332,10 @@ function SkillsTab() {
   const grouped: Record<string, Array<SkillItem>> = {}
   for (const skill of skills) {
     const cat = skill.category || 'Uncategorized'
-    if (!grouped[cat]) grouped[cat] = []
-    grouped[cat].push(skill)
+    const bucket = Object.hasOwn(grouped, cat)
+      ? grouped[cat]
+      : (grouped[cat] = [])
+    bucket.push(skill)
   }
 
   return (
@@ -402,19 +411,24 @@ function McpTab() {
       })
       .then((json) => {
         if (cancelled) return
-        const list = Array.isArray(json?.servers) ? json.servers : []
+        const list: Array<unknown> = Array.isArray(json?.servers)
+          ? json.servers
+          : []
         setServers(
-          list.map((entry: Record<string, unknown>) => ({
-            id: String(entry?.id || entry?.name || ''),
-            name: String(entry?.name || ''),
-            enabled: Boolean(entry?.enabled),
-            status:
-              typeof entry?.status === 'string' ? entry.status : undefined,
-            discoveredToolsCount:
-              typeof entry?.discoveredToolsCount === 'number'
-                ? entry.discoveredToolsCount
-                : undefined,
-          })),
+          list.map((entry) => {
+            const record = (entry ?? {}) as Record<string, unknown>
+            return {
+              id: String(record.id || record.name || ''),
+              name: String(record.name || ''),
+              enabled: Boolean(record.enabled),
+              status:
+                typeof record.status === 'string' ? record.status : undefined,
+              discoveredToolsCount:
+                typeof record.discoveredToolsCount === 'number'
+                  ? record.discoveredToolsCount
+                  : undefined,
+            }
+          }),
         )
         setLoading(false)
       })
@@ -507,7 +521,9 @@ function LogsTab() {
 
 // ── Panel ─────────────────────────────────────────────────────────────────────
 
-export function InspectorPanel({ embedded = false }: { embedded?: boolean } = {}) {
+export function InspectorPanel({
+  embedded = false,
+}: { embedded?: boolean } = {}) {
   const isOpen = useInspectorStore((s) => s.isOpen)
   const memoryAvailable = useFeatureAvailable('memory')
   const skillsAvailable = useFeatureAvailable('skills')

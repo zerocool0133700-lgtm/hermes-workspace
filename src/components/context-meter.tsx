@@ -37,17 +37,18 @@ export function ContextMeter({
   const prevPctRef = useRef(0)
 
   useEffect(() => {
-    let cancelled = false
+    const state = { cancelled: false }
+    const isCancelled = () => state.cancelled
 
     async function poll() {
       try {
         const res = await fetch('/api/context-usage')
-        if (!res.ok || cancelled) return
+        if (!res.ok || isCancelled()) return
         const data = (await res.json()) as {
           ok?: boolean
           contextPercent?: unknown
         }
-        if (!data?.ok || cancelled) return
+        if (!data.ok || isCancelled()) return
         const next = readPercent(data.contextPercent)
         prevPctRef.current = next
         setPct(next)
@@ -67,7 +68,7 @@ export function ContextMeter({
     void poll()
     const id = window.setInterval(() => void poll(), POLL_MS)
     return () => {
-      cancelled = true
+      state.cancelled = true
       window.clearInterval(id)
       if (rafRef.current !== null) cancelAnimationFrame(rafRef.current)
     }

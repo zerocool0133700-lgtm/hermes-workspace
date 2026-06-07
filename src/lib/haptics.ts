@@ -1,5 +1,7 @@
 export function hapticTap() {
   try {
-    navigator.vibrate?.(8)
+    if (typeof navigator.vibrate === 'function') {
+      navigator.vibrate(8)
+    }
   } catch {}
 }

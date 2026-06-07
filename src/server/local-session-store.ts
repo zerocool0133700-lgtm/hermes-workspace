@@ -35,9 +35,9 @@ function loadFromDisk(): void {
   try {
     if (existsSync(SESSIONS_FILE)) {
       const raw = readFileSync(SESSIONS_FILE, 'utf-8')
-      const parsed = JSON.parse(raw) as StoreData
+      const parsed = JSON.parse(raw) as Partial<StoreData>
       if (parsed.sessions && parsed.messages) {
-        store = parsed
+        store = { sessions: parsed.sessions, messages: parsed.messages }
       }
     }
   } catch {
@@ -68,7 +68,7 @@ export function ensureLocalSession(
   sessionId: string,
   model?: string,
 ): LocalSession {
-  if (!store.sessions[sessionId]) {
+  if (!Object.hasOwn(store.sessions, sessionId)) {
     store.sessions[sessionId] = {
       id: sessionId,
       title: null,
@@ -87,7 +87,9 @@ export function updateLocalSessionTitle(
   sessionId: string,
   title: string,
 ): void {
-  const session = store.sessions[sessionId]
+  const session = Object.hasOwn(store.sessions, sessionId)
+    ? store.sessions[sessionId]
+    : undefined
   if (session) {
     session.title = title
     session.updatedAt = Date.now()
@@ -96,7 +98,9 @@ export function updateLocalSessionTitle(
 }
 
 export function touchLocalSession(sessionId: string): void {
-  const session = store.sessions[sessionId]
+  const session = Object.hasOwn(store.sessions, sessionId)
+    ? store.sessions[sessionId]
+    : undefined
   if (session) session.updatedAt = Date.now()
 }
 

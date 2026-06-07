@@ -28,28 +28,28 @@ export function TerminalPanel() {
   } | null>(null)
 
   const handleMinimize = useCallback(
-    function handleMinimize() {
+    function () {
       setPanelOpen(false)
     },
     [setPanelOpen],
   )
 
   const handleMaximize = useCallback(
-    function handleMaximize() {
+    function () {
       navigate({ to: '/terminal' })
     },
     [navigate],
   )
 
   const handleClose = useCallback(
-    function handleClose() {
+    function () {
       setPanelOpen(false)
     },
     [setPanelOpen],
   )
 
   const handleResizeStart = useCallback(
-    function handleResizeStart(event: React.MouseEvent<HTMLDivElement>) {
+    function (event: React.MouseEvent<HTMLDivElement>) {
       event.preventDefault()
       dragStateRef.current = {
         startY: event.clientY,

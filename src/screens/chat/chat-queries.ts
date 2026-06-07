@@ -404,15 +404,15 @@ export function updateHistoryMessageByClientIdEverywhere(
   for (const [queryKey, data] of historyQueries) {
     const current = data
     const messages = Array.isArray(current?.messages) ? current.messages : []
-    let changed = false
-    const nextMessages = messages.map((message) => {
-      if (!isMatchingClientMessage(message, normalizedClientId, optimisticId)) {
-        return message
-      }
-      changed = true
-      return updater(message)
-    })
+    const changed = messages.some((message) =>
+      isMatchingClientMessage(message, normalizedClientId, optimisticId),
+    )
     if (!changed) continue
+    const nextMessages = messages.map((message) =>
+      isMatchingClientMessage(message, normalizedClientId, optimisticId)
+        ? updater(message)
+        : message,
+    )
     queryClient.setQueryData(queryKey, {
       sessionKey: current?.sessionKey ?? '',
       sessionId: current?.sessionId,
@@ -470,12 +470,12 @@ export function moveHistoryMessages(
 ) {
   const fromKey = chatQueryKeys.history(fromFriendlyId, fromSessionKey)
   const toKey = chatQueryKeys.history(toFriendlyId, toSessionKey)
-  const fromData = queryClient.getQueryData(fromKey) as Record<string, unknown> | undefined
+  const fromData = queryClient.getQueryData<HistoryResponse>(fromKey)
   if (!fromData) return
   const messages = Array.isArray(fromData.messages) ? fromData.messages : []
   queryClient.setQueryData(toKey, {
     sessionKey: toSessionKey,
-    sessionId: (fromData as any).sessionId,
+    sessionId: fromData.sessionId,
     messages,
   })
   queryClient.removeQueries({ queryKey: fromKey, exact: true })
@@ -535,14 +535,17 @@ export function reconcileSessionDraft(
             key: toSessionKey,
             friendlyId: toFriendlyId,
             lastMessage: source.lastMessage ?? session.lastMessage,
-            updatedAt: Math.max(source.updatedAt ?? 0, session.updatedAt ?? 0) ||
+            updatedAt:
+              Math.max(source.updatedAt ?? 0, session.updatedAt ?? 0) ||
               session.updatedAt ||
               source.updatedAt,
             label: session.label ?? source.label,
             title: session.title ?? source.title,
             derivedTitle: session.derivedTitle ?? source.derivedTitle,
             titleStatus:
-              session.titleStatus === 'idle' ? source.titleStatus : session.titleStatus,
+              session.titleStatus === 'idle'
+                ? source.titleStatus
+                : session.titleStatus,
             titleSource: session.titleSource ?? source.titleSource,
             titleError: session.titleError ?? source.titleError,
           },

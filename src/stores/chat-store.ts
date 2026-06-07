@@ -670,8 +670,12 @@ export const useChatStore = create<ChatState>((set, get) => ({
   },
 
   setSessionWaiting: (sessionKey, runId) => {
+    const waitingMeta = get().waitingSessionMeta
+    const existingMeta = Object.hasOwn(waitingMeta, sessionKey)
+      ? waitingMeta[sessionKey]
+      : undefined
     const meta = {
-      since: get().waitingSessionMeta[sessionKey]?.since ?? Date.now(),
+      since: existingMeta?.since ?? Date.now(),
       runId: runId ?? null,
     }
     const nextKeys = new Set(get().waitingSessionKeys)
@@ -915,8 +919,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
           ) {
             const prevEmptyIdx = sessionMessages.findLastIndex(
               (m) =>
-                m.role === 'assistant' &&
-                extractMessageText(m).length === 0,
+                m.role === 'assistant' && extractMessageText(m).length === 0,
             )
             if (prevEmptyIdx >= 0) {
               sessionMessages[prevEmptyIdx] = incomingMessage
@@ -1057,7 +1060,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
           // ToolCallPill can render them even after streaming state is cleared.
           // Fast tool runs clear streaming state before React renders — embedding
           // __streamToolCalls ensures pills survive in the history message.
-          const streamToolCallsToEmbed = streaming?.toolCalls?.length
+          const streamToolCallsToEmbed = streaming?.toolCalls.length
             ? streaming.toolCalls
             : undefined
           completeMessage = {
@@ -1249,7 +1252,8 @@ export const useChatStore = create<ChatState>((set, get) => ({
         // returns the complete message after the realtime buffer had a
         // partial version.
         if (rtText.length > 0 && histText.length > 0) {
-          if (histText.startsWith(rtText) || rtText.startsWith(histText)) return true
+          if (histText.startsWith(rtText) || rtText.startsWith(histText))
+            return true
         }
       }
 

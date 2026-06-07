@@ -3,3 +3,8 @@ allowBuilds:
   electron-winstaller: true
   esbuild: true
   unrs-resolver: true
+
+# Force a single @types/three across the tree (ecctrl pins 0.177, the app uses 0.184);
+# divergent three type versions produce nominally-incompatible Vector3/geometry types.
+overrides:
+  '@types/three': 0.184.0
