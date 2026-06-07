@@ -103,4 +103,4 @@ Read these in order if you are testing the v1 release:
 
 ## Canonical spec
 
-The canonical runtime contract is `SWARM_SPEC.md` in the swarm specs directory. This docs set explains the public surface; the spec wins when implementation details conflict.
+The canonical runtime contract is `swarm.yaml` at the repo root (the Zod-validated, unit-tested worker roster/contract). This docs set explains the public surface; `swarm.yaml` wins when implementation details conflict.

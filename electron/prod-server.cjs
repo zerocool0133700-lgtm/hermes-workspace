@@ -71,8 +71,7 @@ async function main() {
       }
       const filePath = path.resolve(DIST_CLIENT, `.${decodedPath}`)
       const withinRoot =
-        filePath === DIST_CLIENT ||
-        filePath.startsWith(DIST_CLIENT + path.sep)
+        filePath === DIST_CLIENT || filePath.startsWith(DIST_CLIENT + path.sep)
       if (
         !decodedPath.includes('..') &&
         !decodedPath.includes('\0') &&

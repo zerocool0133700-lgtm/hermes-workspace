@@ -22,16 +22,16 @@ Use those specs as the source of truth for standing missions. The role preset is
 
 | Preset              | Default model | Use when                                                         |
 | ------------------- | ------------- | ---------------------------------------------------------------- |
-| Orchestrator        | GPT-5.4       | You need dispatch, routing, drift detection, and escalation.     |
+| Orchestrator        | GPT-5.5       | You need dispatch, routing, drift detection, and escalation.     |
 | Builder             | GPT-5.5       | You need product code shipped with tests/build proof.            |
-| Reviewer            | GPT-5.4       | You need byte-verified review and merge readiness.               |
+| Reviewer            | GPT-5.5       | You need byte-verified review and merge readiness.               |
 | Triage              | GPT-5.5       | You need issues/PRs scored, reproduced, patched, or prepared.    |
-| Lab                 | GPT-5.4       | You need isolated experiments or local-model benchmarking.       |
+| Lab                 | GPT-5.5       | You need isolated experiments or local-model benchmarking.       |
 | Sage                | GPT-5.5       | You need research, synthesis, scripts, or launch copy.           |
 | Scribe              | GPT-5.5       | You need docs, specs, handoffs, skills hygiene, memory curation. |
-| Foundation          | GPT-5.4       | You need runtime, repair, infra, health, or lifecycle work.      |
-| QA                  | GPT-5.4       | You need regression, smoke, expected-vs-actual verification.     |
-| Mirror Integrations | GPT-5.4       | You need upstream sync, integrations, or asset packs.            |
+| Foundation          | GPT-5.5       | You need runtime, repair, infra, health, or lifecycle work.      |
+| QA                  | GPT-5.5       | You need regression, smoke, expected-vs-actual verification.     |
+| Mirror Integrations | GPT-5.5       | You need upstream sync, integrations, or asset packs.            |
 | Custom              | user-selected | You are creating a lane that does not fit an existing preset.    |
 
 ## Orchestrator
@@ -45,7 +45,7 @@ Default skills:
 - `swarm-review-learning-loop`
 - `self-improvement`
 
-Default model: GPT-5.4
+Default model: GPT-5.5
 
 When to use:
 
@@ -110,7 +110,7 @@ Default skills:
 - `byte-verified-code-review`
 - `swarm-review-learning-loop`
 
-Default model: GPT-5.4
+Default model: GPT-5.5
 
 When to use:
 
@@ -173,7 +173,7 @@ Default skills:
 - `pc1-ollama-gguf-bench`
 - `swarm-bench-worker`
 
-Default model: GPT-5.4
+Default model: GPT-5.5
 
 When to use:
 
@@ -259,7 +259,7 @@ Default skills:
 
 - `swarm-worker-core`
 
-Default model: GPT-5.4
+Default model: GPT-5.5
 
 When to use:
 
@@ -289,7 +289,7 @@ Default skills:
 - `swarm-worker-core`
 - `byte-verified-code-review`
 
-Default model: GPT-5.4
+Default model: GPT-5.5
 
 When to use:
 
@@ -318,7 +318,7 @@ Default skills:
 - `claude-promo`
 - `songwriting-and-ai-music`
 
-Default model: GPT-5.4
+Default model: GPT-5.5
 
 When to use:
 

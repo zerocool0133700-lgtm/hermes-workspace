@@ -105,6 +105,19 @@ export type GatewayAgentPauseResponse = GatewayAgentActionResponse & {
   paused?: boolean
 }
 
+// ── Request timeouts (ms) ─────────────────────────────────────────────────────
+
+const TIMEOUT = {
+  approvals: 6000,
+  models: 7000,
+  resolveApproval: 8000,
+  mutation: 12000,
+  history: 15000,
+  send: 30000,
+} as const
+
+const JSON_HEADERS = { 'content-type': 'application/json' } as const
+
 async function readError(response: Response): Promise<string> {
   try {
     const payload = (await response.json()) as Record<string, unknown>
@@ -128,6 +141,79 @@ function isAbortError(error: unknown): boolean {
   )
 }
 
+type GatewayRequestInit = {
+  method?: string
+  headers?: Record<string, string>
+  body?: string
+  timeoutMs: number
+}
+
+/**
+ * Performs a fetch wrapped in an AbortController-backed timeout. The returned
+ * Response is left unconsumed so callers retain their bespoke parsing/guards.
+ * Abort errors are rethrown unchanged so each caller can map them to its own
+ * message (e.g. "Request timed out" vs "Gateway disconnected").
+ */
+async function gatewayFetch(
+  path: string,
+  init: GatewayRequestInit,
+): Promise<Response> {
+  const controller = new AbortController()
+  const timeout = globalThis.setTimeout(
+    () => controller.abort(),
+    init.timeoutMs,
+  )
+  try {
+    return await fetch(makeEndpoint(path), {
+      method: init.method,
+      headers: init.headers,
+      body: init.body,
+      signal: controller.signal,
+    })
+  } finally {
+    globalThis.clearTimeout(timeout)
+  }
+}
+
+/**
+ * Throw-mode POST helper: serializes `body`, parses the JSON response
+ * defensively, and throws an Error (using the server's error, then statusText,
+ * then `fallbackMessage`) when the response is non-OK or reports `ok: false`.
+ * An aborted request throws `Error('Request timed out')`.
+ */
+async function gatewayMutate<T extends { ok?: boolean; error?: string }>(
+  path: string,
+  body: unknown,
+  timeoutMs: number,
+  fallbackMessage: string,
+): Promise<T> {
+  try {
+    const response = await gatewayFetch(path, {
+      method: 'POST',
+      headers: JSON_HEADERS,
+      body: JSON.stringify(body),
+      timeoutMs,
+    })
+
+    const payload = (await response.json().catch(() => ({}))) as T
+
+    if (!response.ok || payload.ok === false) {
+      const message =
+        typeof payload.error === 'string' && payload.error.trim().length > 0
+          ? payload.error
+          : response.statusText || fallbackMessage
+      throw new Error(message)
+    }
+
+    return payload
+  } catch (error) {
+    if (isAbortError(error)) {
+      throw new Error('Request timed out')
+    }
+    throw error
+  }
+}
+
 // ── Session History & Messaging ───────────────────────────────────────────────
 
 export type SessionHistoryMessage = {
@@ -148,18 +234,13 @@ export async function fetchSessionHistory(
   sessionKey: string,
   opts?: { limit?: number; includeTools?: boolean },
 ): Promise<SessionHistoryResponse> {
-  const controller = new AbortController()
-  const timeout = globalThis.setTimeout(() => controller.abort(), 15000)
   try {
     const params = new URLSearchParams({ key: sessionKey })
     if (opts?.limit) params.set('limit', String(opts.limit))
     if (opts?.includeTools) params.set('includeTools', 'true')
-    const response = await fetch(
-      makeEndpoint(`/api/session-history?${params}`),
-      {
-        signal: controller.signal,
-      },
-    )
+    const response = await gatewayFetch(`/api/session-history?${params}`, {
+      timeoutMs: TIMEOUT.history,
+    })
     if (!response.ok)
       return { ok: false, messages: [], error: await readError(response) }
     return (await response.json()) as SessionHistoryResponse
@@ -167,8 +248,6 @@ export async function fetchSessionHistory(
     if (isAbortError(error))
       return { ok: false, messages: [], error: 'Request timed out' }
     return { ok: false, messages: [], error: String(error) }
-  } finally {
-    globalThis.clearTimeout(timeout)
   }
 }
 
@@ -181,32 +260,12 @@ export async function sendToSession(
   sessionKey: string,
   message: string,
 ): Promise<SendToSessionResponse> {
-  const controller = new AbortController()
-  const timeout = globalThis.setTimeout(() => controller.abort(), 30000)
-  try {
-    const response = await fetch(makeEndpoint('/api/session-send'), {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ sessionKey, message }),
-      signal: controller.signal,
-    })
-    const payload = (await response
-      .json()
-      .catch(() => ({}))) as SendToSessionResponse
-    if (!response.ok || payload.ok === false) {
-      throw new Error(
-        typeof payload.error === 'string' && payload.error.trim()
-          ? payload.error
-          : response.statusText || 'Failed to send message',
-      )
-    }
-    return payload
-  } catch (error) {
-    if (isAbortError(error)) throw new Error('Request timed out')
-    throw error
-  } finally {
-    globalThis.clearTimeout(timeout)
-  }
+  return gatewayMutate<SendToSessionResponse>(
+    '/api/session-send',
+    { sessionKey, message },
+    TIMEOUT.send,
+    'Failed to send message',
+  )
 }
 
 export async function fetchSessions(): Promise<GatewaySessionsResponse> {
@@ -255,12 +314,9 @@ export async function fetchSessionStatus(
 }
 
 export async function fetchModels(): Promise<GatewayModelsResponse> {
-  const controller = new AbortController()
-  const timeout = globalThis.setTimeout(() => controller.abort(), 7000)
-
   try {
-    const response = await fetch(makeEndpoint('/api/models'), {
-      signal: controller.signal,
+    const response = await gatewayFetch('/api/models', {
+      timeoutMs: TIMEOUT.models,
     })
     if (!response.ok) {
       throw new Error(await readError(response))
@@ -283,8 +339,6 @@ export async function fetchModels(): Promise<GatewayModelsResponse> {
       throw new Error('Gateway disconnected')
     }
     throw error
-  } finally {
-    globalThis.clearTimeout(timeout)
   }
 }
 
@@ -292,153 +346,49 @@ export async function switchModel(
   model: string,
   sessionKey?: string,
 ): Promise<GatewayModelSwitchResponse> {
-  const controller = new AbortController()
-  const timeout = globalThis.setTimeout(() => controller.abort(), 12000)
-
-  try {
-    const response = await fetch(makeEndpoint('/api/model-switch'), {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ model, sessionKey }),
-      signal: controller.signal,
-    })
-
-    const payload = (await response
-      .json()
-      .catch(() => ({}))) as GatewayModelSwitchResponse
-
-    if (!response.ok || payload.ok === false) {
-      const message =
-        typeof payload.error === 'string' && payload.error.trim().length > 0
-          ? payload.error
-          : response.statusText || 'Failed to switch model'
-      throw new Error(message)
-    }
-
-    return payload
-  } catch (error) {
-    if (isAbortError(error)) {
-      throw new Error('Request timed out')
-    }
-    throw error
-  } finally {
-    globalThis.clearTimeout(timeout)
-  }
+  return gatewayMutate<GatewayModelSwitchResponse>(
+    '/api/model-switch',
+    { model, sessionKey },
+    TIMEOUT.mutation,
+    'Failed to switch model',
+  )
 }
 
 export async function setDefaultModel(
   model: string,
 ): Promise<GatewayModelDefaultResponse> {
-  const controller = new AbortController()
-  const timeout = globalThis.setTimeout(() => controller.abort(), 12000)
-
-  try {
-    const response = await fetch(makeEndpoint('/api/config-patch'), {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({
-        raw: JSON.stringify({ defaultModel: model }, null, 2),
-        reason: 'Studio: set default model',
-      }),
-      signal: controller.signal,
-    })
-
-    const payload = (await response
-      .json()
-      .catch(() => ({}))) as GatewayModelDefaultResponse
-
-    if (!response.ok || payload.ok === false) {
-      const message =
-        typeof payload.error === 'string' && payload.error.trim().length > 0
-          ? payload.error
-          : response.statusText || 'Failed to persist default model'
-      throw new Error(message)
-    }
-
-    return payload
-  } catch (error) {
-    if (isAbortError(error)) {
-      throw new Error('Request timed out')
-    }
-    throw error
-  } finally {
-    globalThis.clearTimeout(timeout)
-  }
+  return gatewayMutate<GatewayModelDefaultResponse>(
+    '/api/config-patch',
+    {
+      raw: JSON.stringify({ defaultModel: model }, null, 2),
+      reason: 'Studio: set default model',
+    },
+    TIMEOUT.mutation,
+    'Failed to persist default model',
+  )
 }
 
 export async function steerAgent(
   sessionKey: string,
   message: string,
 ): Promise<GatewayAgentActionResponse> {
-  const controller = new AbortController()
-  const timeout = globalThis.setTimeout(() => controller.abort(), 12000)
-
-  try {
-    const response = await fetch(makeEndpoint('/api/agent-steer'), {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ sessionKey, message }),
-      signal: controller.signal,
-    })
-
-    const payload = (await response
-      .json()
-      .catch(() => ({}))) as GatewayAgentActionResponse
-
-    if (!response.ok || payload.ok === false) {
-      const errorMessage =
-        typeof payload.error === 'string' && payload.error.trim().length > 0
-          ? payload.error
-          : response.statusText || 'Failed to send directive'
-      throw new Error(errorMessage)
-    }
-
-    return payload
-  } catch (error) {
-    if (isAbortError(error)) {
-      throw new Error('Request timed out')
-    }
-    throw error
-  } finally {
-    globalThis.clearTimeout(timeout)
-  }
+  return gatewayMutate<GatewayAgentActionResponse>(
+    '/api/agent-steer',
+    { sessionKey, message },
+    TIMEOUT.mutation,
+    'Failed to send directive',
+  )
 }
 
 export async function killAgentSession(
   sessionKey: string,
 ): Promise<GatewayAgentActionResponse> {
-  const controller = new AbortController()
-  const timeout = globalThis.setTimeout(() => controller.abort(), 12000)
-
-  try {
-    const response = await fetch(makeEndpoint('/api/agent-kill'), {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ sessionKey }),
-      signal: controller.signal,
-    })
-
-    const payload = (await response
-      .json()
-      .catch(() => ({}))) as GatewayAgentActionResponse
-
-    if (!response.ok || payload.ok === false) {
-      const message =
-        typeof payload.error === 'string' && payload.error.trim().length > 0
-          ? payload.error
-          : response.statusText || 'Failed to terminate agent'
-      throw new Error(message)
-    }
-
-    return payload
-  } catch (error) {
-    if (isAbortError(error)) {
-      throw new Error('Request timed out')
-    }
-    throw error
-  } finally {
-    globalThis.clearTimeout(timeout)
-  }
+  return gatewayMutate<GatewayAgentActionResponse>(
+    '/api/agent-kill',
+    { sessionKey },
+    TIMEOUT.mutation,
+    'Failed to terminate agent',
+  )
 }
 
 // ── Gateway Approvals ─────────────────────────────────────────────────────────
@@ -462,18 +412,14 @@ export type GatewayApprovalsResponse = {
 }
 
 export async function fetchGatewayApprovals(): Promise<GatewayApprovalsResponse> {
-  const controller = new AbortController()
-  const timeout = globalThis.setTimeout(() => controller.abort(), 6000)
   try {
-    const response = await fetch(makeEndpoint('/api/gateway/approvals'), {
-      signal: controller.signal,
+    const response = await gatewayFetch('/api/gateway/approvals', {
+      timeoutMs: TIMEOUT.approvals,
     })
     if (!response.ok) return { ok: false, approvals: [] }
     return (await response.json()) as GatewayApprovalsResponse
   } catch {
     return { ok: false, approvals: [] }
-  } finally {
-    globalThis.clearTimeout(timeout)
   }
 }
 
@@ -481,22 +427,18 @@ export async function resolveGatewayApproval(
   approvalId: string,
   action: 'approve' | 'deny',
 ): Promise<{ ok: boolean }> {
-  const controller = new AbortController()
-  const timeout = globalThis.setTimeout(() => controller.abort(), 8000)
   try {
-    const response = await fetch(
-      makeEndpoint(`/api/gateway/approvals/${approvalId}/${action}`),
+    const response = await gatewayFetch(
+      `/api/gateway/approvals/${approvalId}/${action}`,
       {
         method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        signal: controller.signal,
+        headers: JSON_HEADERS,
+        timeoutMs: TIMEOUT.resolveApproval,
       },
     )
     return { ok: response.ok }
   } catch {
     return { ok: false }
-  } finally {
-    globalThis.clearTimeout(timeout)
   }
 }
 
@@ -504,36 +446,10 @@ export async function toggleAgentPause(
   sessionKey: string,
   pause: boolean,
 ): Promise<GatewayAgentPauseResponse> {
-  const controller = new AbortController()
-  const timeout = globalThis.setTimeout(() => controller.abort(), 12000)
-
-  try {
-    const response = await fetch(makeEndpoint('/api/agent-pause'), {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ sessionKey, pause }),
-      signal: controller.signal,
-    })
-
-    const payload = (await response
-      .json()
-      .catch(() => ({}))) as GatewayAgentPauseResponse
-
-    if (!response.ok || payload.ok === false) {
-      const message =
-        typeof payload.error === 'string' && payload.error.trim().length > 0
-          ? payload.error
-          : response.statusText || 'Failed to update pause state'
-      throw new Error(message)
-    }
-
-    return payload
-  } catch (error) {
-    if (isAbortError(error)) {
-      throw new Error('Request timed out')
-    }
-    throw error
-  } finally {
-    globalThis.clearTimeout(timeout)
-  }
+  return gatewayMutate<GatewayAgentPauseResponse>(
+    '/api/agent-pause',
+    { sessionKey, pause },
+    TIMEOUT.mutation,
+    'Failed to update pause state',
+  )
 }

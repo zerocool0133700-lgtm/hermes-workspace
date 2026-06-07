@@ -55,7 +55,7 @@ The key rule: workers do not free-style message Eric. They checkpoint. The orche
 
 ## SwarmBrief shape
 
-The canonical YAML lives in `SWARM_SPEC.md` section 3. This is the public shape:
+The canonical worker roster and contract live in `swarm.yaml` at the repo root (Zod-validated and unit-tested). This is the public shape:
 
 ```yaml
 brief_id: brief-<timestamp>-<slug>
