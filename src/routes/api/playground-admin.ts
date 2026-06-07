@@ -1,5 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { json } from '@tanstack/react-start'
+import { requireAuth } from '../../server/auth-middleware'
 
 function workerBaseUrl() {
   const explicit = (process.env.PLAYGROUND_ADMIN_BASE_URL || '').trim()
@@ -13,21 +14,11 @@ export const Route = createFileRoute('/api/playground-admin')({
   server: {
     handlers: {
       GET: async ({ request }) => {
-        const host = (request.headers.get('host') || '').toLowerCase()
-        const localOk =
-          host.startsWith('127.0.0.1:') ||
-          host.startsWith('localhost:') ||
-          host.endsWith('.local:3002')
-        if (!localOk) {
-          return json(
-            {
-              ok: false,
-              error:
-                'Admin stats are only available from a local workspace session.',
-            },
-            { status: 403 },
-          )
-        }
+        // Admin stats require an authenticated workspace session. (Previously
+        // gated on the spoofable `Host` header — replaced with real session
+        // auth. No-op when no workspace password is configured.)
+        const denied = requireAuth(request)
+        if (denied) return denied
 
         const token = (process.env.PLAYGROUND_ADMIN_TOKEN || '').trim()
         if (!token) {
@@ -61,9 +52,12 @@ export const Route = createFileRoute('/api/playground-admin')({
               'cache-control': 'no-store',
             },
           })
-        } catch (error: any) {
+        } catch (error) {
           return json(
-            { ok: false, error: error?.message || 'Unknown error' },
+            {
+              ok: false,
+              error: error instanceof Error ? error.message : 'Unknown error',
+            },
             { status: 500 },
           )
         }

@@ -18,6 +18,7 @@ afterEach(() => {
   delete process.env.NODE_ENV
   delete process.env.TRUST_PROXY
   delete process.env.CLAUDE_PASSWORD
+  delete process.env.HERMES_PASSWORD
 })
 
 describe('createSessionCookie (#123)', () => {
@@ -93,5 +94,45 @@ describe('getRequestIp (#125)', () => {
     const { getRequestIp } = await import('./auth-middleware')
     const ip = getRequestIp(makeRequest({ 'x-real-ip': '198.51.100.5' }))
     expect(ip).toBe('198.51.100.5')
+  })
+})
+
+describe('requireAuth (deny-by-default guard)', () => {
+  function makeRequest(headers: Record<string, string> = {}): Request {
+    return new Request('http://localhost/api/protected', { headers })
+  }
+
+  it('returns null (pass-through) when no password is configured', async () => {
+    delete process.env.HERMES_PASSWORD
+    delete process.env.CLAUDE_PASSWORD
+    const { requireAuth } = await import('./auth-middleware')
+    expect(requireAuth(makeRequest())).toBeNull()
+  })
+
+  it('returns a 401 Response when password is set and no cookie is present', async () => {
+    process.env.HERMES_PASSWORD = 'sekret'
+    const { requireAuth } = await import('./auth-middleware')
+    const denied = requireAuth(makeRequest())
+    expect(denied).toBeInstanceOf(Response)
+    expect(denied?.status).toBe(401)
+  })
+
+  it('returns a 401 Response for an unknown/invalid session token', async () => {
+    process.env.HERMES_PASSWORD = 'sekret'
+    const { requireAuth } = await import('./auth-middleware')
+    const denied = requireAuth(
+      makeRequest({ cookie: 'claude-auth=not-a-real-token' }),
+    )
+    expect(denied?.status).toBe(401)
+  })
+
+  it('returns null for a valid stored session token', async () => {
+    process.env.HERMES_PASSWORD = 'sekret'
+    const { requireAuth, generateSessionToken, storeSessionToken } =
+      await import('./auth-middleware')
+    const token = generateSessionToken()
+    storeSessionToken(token)
+    const allowed = requireAuth(makeRequest({ cookie: `claude-auth=${token}` }))
+    expect(allowed).toBeNull()
   })
 })

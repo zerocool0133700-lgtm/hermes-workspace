@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { json } from '@tanstack/react-start'
 import { z } from 'zod'
+import { requireAuth } from '../../server/auth-middleware'
 import {
   createKanbanCard,
   getKanbanBackendMeta,
@@ -61,7 +62,9 @@ const UpdateCardSchema = CreateCardSchema.partial().extend({
 export const Route = createFileRoute('/api/swarm-kanban')({
   server: {
     handlers: {
-      GET: async () => {
+      GET: async ({ request }) => {
+        const denied = requireAuth(request)
+        if (denied) return denied
         return json({
           ok: true,
           cards: await listKanbanCards(),
@@ -69,6 +72,8 @@ export const Route = createFileRoute('/api/swarm-kanban')({
         })
       },
       POST: async ({ request }) => {
+        const denied = requireAuth(request)
+        if (denied) return denied
         let body: unknown
         try {
           body = await request.json()
@@ -105,6 +110,8 @@ export const Route = createFileRoute('/api/swarm-kanban')({
         return json({ ok: true, card, backend: getKanbanBackendMeta() })
       },
       PATCH: async ({ request }) => {
+        const denied = requireAuth(request)
+        if (denied) return denied
         let body: unknown
         try {
           body = await request.json()

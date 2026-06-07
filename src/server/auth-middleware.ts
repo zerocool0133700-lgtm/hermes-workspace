@@ -282,6 +282,24 @@ export function requireLocalOrAuth(request: Request): boolean {
 }
 
 /**
+ * Deny-by-default guard for API route handlers.
+ *
+ * Returns a 401 `Response` when the request is not authenticated, or `null`
+ * when the handler may proceed. Usage:
+ *
+ *   const denied = requireAuth(request)
+ *   if (denied) return denied
+ *
+ * Note: when no workspace password is configured, `isAuthenticated` returns
+ * true, so this is a no-op for local/no-password deployments and only
+ * enforces once `HERMES_PASSWORD` is set.
+ */
+export function requireAuth(request: Request): Response | null {
+  if (isAuthenticated(request)) return null
+  return Response.json({ ok: false, error: 'Unauthorized' }, { status: 401 })
+}
+
+/**
  * Whether session cookies should set the `Secure` attribute.
  *
  * Defaults ON in production, OFF in development (so localhost-over-HTTP
