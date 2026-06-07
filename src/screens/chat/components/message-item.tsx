@@ -456,11 +456,11 @@ function normalizeTimestamp(value: unknown): number | null {
 
 function rawTimestamp(message: ChatMessage): number | null {
   const candidates = [
-    (message as any).createdAt,
-    (message as any).created_at,
-    (message as any).timestamp,
-    (message as any).time,
-    (message as any).ts,
+    message.createdAt,
+    message.created_at,
+    message.timestamp,
+    message.time,
+    message.ts,
   ]
   for (const candidate of candidates) {
     const normalized = normalizeTimestamp(candidate)
@@ -535,9 +535,7 @@ export function detectAssistantCorruptionWarning(
 }
 
 function readExecNotification(message: ChatMessage): ExecNotification | null {
-  const raw = (message as any).__execNotification as
-    | Record<string, unknown>
-    | undefined
+  const raw = message.__execNotification
   if (!raw || typeof raw !== 'object') return null
   const name = typeof raw.name === 'string' ? raw.name : ''
   const exitCode =
@@ -2347,18 +2345,18 @@ function MessageItemComponent({
   // Get tool calls from this message (for assistant messages)
   const toolCalls = role === 'assistant' ? getToolCallsFromMessage(message) : []
   const embeddedStreamToolCalls = useMemo(() => {
-    const value = (message as any).__streamToolCalls
+    const value = message.__streamToolCalls
     if (!Array.isArray(value)) return []
     return value
-      .map((entry: any) => ({
-        id: typeof entry?.id === 'string' ? entry.id : '',
-        name: typeof entry?.name === 'string' ? entry.name : 'tool',
-        phase: normalizeStreamToolPhase(entry?.phase),
-        args: entry?.args,
-        preview: typeof entry?.preview === 'string' ? entry.preview : undefined,
-        result: typeof entry?.result === 'string' ? entry.result : undefined,
+      .map((entry) => ({
+        id: typeof entry.id === 'string' ? entry.id : '',
+        name: typeof entry.name === 'string' ? entry.name : 'tool',
+        phase: normalizeStreamToolPhase(entry.phase),
+        args: entry.args,
+        preview: typeof entry.preview === 'string' ? entry.preview : undefined,
+        result: typeof entry.result === 'string' ? entry.result : undefined,
       }))
-      .filter((entry: any) => entry.id.length > 0)
+      .filter((entry) => entry.id.length > 0)
   }, [message])
   const effectiveStreamToolCalls =
     streamToolCalls.length > 0 ? streamToolCalls : embeddedStreamToolCalls
@@ -2428,8 +2426,7 @@ function MessageItemComponent({
           parseToolNameFromMessageText(messageText)
         return {
           key:
-            (typeof (toolMessage as any).id === 'string' &&
-              (toolMessage as any).id) ||
+            (typeof toolMessage.id === 'string' && toolMessage.id) ||
             (typeof toolMessage.toolCallId === 'string' &&
               toolMessage.toolCallId) ||
             `${toolType}-${index}`,
@@ -2677,7 +2674,7 @@ function MessageItemComponent({
         </div>
       )}
       {/* Narration messages (tool-call activity) — compact collapsible row */}
-      {!isUser && (message as any).__isNarration && hasText && (
+      {!isUser && message.__isNarration && hasText && (
         <div className="w-full max-w-[var(--chat-content-max-width)]">
           <details className="group/narration rounded-lg border border-primary-200/50 bg-primary-50/30 hover:bg-primary-50 dark:hover:bg-primary-800/50 transition-colors">
             <summary className="flex items-center gap-2 cursor-pointer select-none px-3 py-2 list-none [&::-webkit-details-marker]:hidden">
@@ -2703,7 +2700,7 @@ function MessageItemComponent({
       )}
       {/* Tool calls now render inline inside the assistant bubble, not above it */}
 
-      {shouldRenderMessageBubble && !(message as any).__isNarration && (
+      {shouldRenderMessageBubble && !message.__isNarration && (
         <Message
           className={cn('gap-2 md:gap-3', isUser ? 'flex-row-reverse' : '')}
         >

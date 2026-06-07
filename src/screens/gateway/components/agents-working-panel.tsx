@@ -1,16 +1,7 @@
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
+import { formatRelativeTime } from '@/lib/format-time'
 
-function formatRelativeTime(ts: number): string {
-  const diffMs = Math.max(0, Date.now() - ts)
-  const seconds = Math.floor(diffMs / 1000)
-  if (seconds < 60) return `${seconds}s ago`
-  const minutes = Math.floor(seconds / 60)
-  if (minutes < 60) return `${minutes}m ago`
-  const hours = Math.floor(minutes / 60)
-  if (hours < 24) return `${hours}h ago`
-  return `${Math.floor(hours / 24)}d ago`
-}
 export type AgentWorkingStatus =
   | 'spawning'
   | 'ready'
@@ -317,7 +308,7 @@ function AgentRow({
         </p>
         {agent.lastAt ? (
           <span className="text-[10px] text-neutral-500 dark:text-neutral-400">
-            {formatRelativeTime(agent.lastAt)}
+            {formatRelativeTime(agent.lastAt, { granularity: 'seconds' })}
           </span>
         ) : null}
       </div>
@@ -385,7 +376,7 @@ function AgentCompactCard({
       </p>
       {agent.lastAt ? (
         <span className="mt-0.5 block text-[10px] text-neutral-500 dark:text-neutral-400">
-          {formatRelativeTime(agent.lastAt)}
+          {formatRelativeTime(agent.lastAt, { granularity: 'seconds' })}
         </span>
       ) : null}
     </button>

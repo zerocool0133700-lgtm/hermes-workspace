@@ -5,6 +5,15 @@
  * Do NOT duplicate these in individual widget files.
  */
 
+// Re-exported from the shared relative-time module so existing
+// `@/screens/dashboard/lib/formatters` imports keep working while the
+// implementation lives in one place.
+export { formatRelativeTime } from '@/lib/format-time'
+export type {
+  FormatRelativeTimeOptions,
+  RelativeTimeGranularity,
+} from '@/lib/format-time'
+
 /**
  * Formats a raw model identifier into a human-readable name.
  *
@@ -71,15 +80,6 @@ export function formatModelName(raw: string): string {
 }
 
 /**
- * Formats a Unix ms timestamp as a relative time string.
- *
- * Examples:
- *   (now - 30s)   → "just now"
- *   (now - 2min)  → "2m ago"
- *   (now - 3h)    → "3h ago"
- *   (now - 2d)    → "2d ago"
- */
-/**
  * Strip namespace prefixes from a skill identifier.
  *
  * Hermes' analytics returns ids like:
@@ -96,18 +96,6 @@ export function formatSkillName(raw: string): string {
   if (!trimmed.includes(':') && !trimmed.includes('/')) return trimmed
   const segments = trimmed.split(/[:/]/)
   return segments[segments.length - 1] || trimmed
-}
-
-export function formatRelativeTime(timestampMs: number): string {
-  if (!timestampMs || timestampMs <= 0) return 'just now'
-  const diffMs = Math.max(0, Date.now() - timestampMs)
-  const seconds = Math.floor(diffMs / 1000)
-  if (seconds < 60) return 'just now'
-  const minutes = Math.floor(seconds / 60)
-  if (minutes < 60) return `${minutes}m ago`
-  const hours = Math.floor(minutes / 60)
-  if (hours < 24) return `${hours}h ago`
-  return `${Math.floor(hours / 24)}d ago`
 }
 
 /**

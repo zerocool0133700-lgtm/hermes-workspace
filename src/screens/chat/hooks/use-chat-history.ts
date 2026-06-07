@@ -490,11 +490,11 @@ export function useChatHistory({
         const text = textFromMessage(msg)
         const execNotification = parseExecNotification(text)
         if (execNotification) {
-          ;(msg as any).__execNotification = execNotification
+          msg.__execNotification = execNotification
           return true
         }
-        if ((msg as any).__execNotification) {
-          delete (msg as any).__execNotification
+        if (msg.__execNotification) {
+          delete msg.__execNotification
         }
         // Filter out system event forwards (subagent task announcements etc)
         if (text.startsWith('A subagent task')) return false
@@ -577,7 +577,7 @@ export function useChatHistory({
           filtered.splice(i, 1)
           i--
         } else {
-          ;(msg as any).__isNarration = true
+          msg.__isNarration = true
         }
       }
     }

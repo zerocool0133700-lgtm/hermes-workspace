@@ -16,6 +16,7 @@ import type {
   CrewPlatformInfo,
 } from '@/hooks/use-crew-status'
 import { cn } from '@/lib/utils'
+import { formatRelativeTime } from '@/lib/format-time'
 import { getOnlineStatus, useCrewStatus } from '@/hooks/use-crew-status'
 
 // ── Helpers ─────────────────────────────────────────────────────────
@@ -35,18 +36,6 @@ function formatTokens(n: number): string {
 function formatCost(n: number | null): string {
   if (n === null) return '—'
   return `$${n.toFixed(2)}`
-}
-
-function formatRelativeTime(unixSeconds: number | null): string {
-  if (!unixSeconds) return 'Never'
-  const diffMs = Date.now() - unixSeconds * 1000
-  const diffMins = Math.floor(diffMs / 60_000)
-  if (diffMins < 1) return 'Just now'
-  if (diffMins < 60) return `${diffMins}m ago`
-  const diffHours = Math.floor(diffMins / 60)
-  if (diffHours < 24) return `${diffHours}h ago`
-  const diffDays = Math.floor(diffHours / 24)
-  return `${diffDays}d ago`
 }
 
 function formatUpdatedAgo(fetchedAt: number | null): string {
@@ -193,7 +182,9 @@ function AgentCard({ member }: { member: CrewMember }) {
           <p className="text-[11px] text-[var(--theme-muted)]">
             Last active:{' '}
             <span className="text-[var(--theme-text)]">
-              {formatRelativeTime(member.lastSessionAt)}
+              {member.lastSessionAt === null
+                ? 'Never'
+                : formatRelativeTime(member.lastSessionAt)}
             </span>
           </p>
           {member.lastSessionTitle && (

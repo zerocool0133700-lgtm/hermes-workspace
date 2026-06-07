@@ -198,7 +198,7 @@ function buildPortableHistory(
         message.role === 'assistant' ||
         message.role === 'system',
     )
-    .filter((message) => (message as any).__streamingStatus !== 'streaming')
+    .filter((message) => message.__streamingStatus !== 'streaming')
     .map((message) => {
       const content = getPortableHistoryContent(message)
       if (!content) return null
@@ -1360,13 +1360,13 @@ export function ChatScreen({
       }
       if (msg.role === 'assistant') {
         if (msg.__streamingStatus === 'streaming') return true
-        if ((msg as any).__optimisticId && !msg.content?.length) return true
+        if (msg.__optimisticId && !msg.content?.length) return true
         if (textFromMessage(msg).trim().length > 0) return true
         const content = Array.isArray(msg.content) ? msg.content : []
         const hasToolCalls = content.some((part) => part.type === 'toolCall')
         const hasStreamToolCalls =
-          Array.isArray((msg as any).__streamToolCalls) &&
-          (msg as any).__streamToolCalls.length > 0
+          Array.isArray(msg.__streamToolCalls) &&
+          msg.__streamToolCalls.length > 0
         return hasToolCalls || hasStreamToolCalls
       }
       return false
@@ -1547,22 +1547,21 @@ export function ChatScreen({
       const id = isPortableMode
         ? localStreamingMessageId
         : last?.role === 'assistant'
-          ? (last as any).__optimisticId || (last as any).id || null
+          ? last.__optimisticId || last.id || null
           : null
       return { isStreaming: true, streamingMessageId: id }
     }
     if (waitingForResponse && finalDisplayMessages.length > 0) {
       const last = finalDisplayMessages.at(-1)
       if (last && last.role === 'assistant') {
-        const isStreamingPlaceholder =
-          (last as any).__streamingStatus === 'streaming'
+        const isStreamingPlaceholder = last.__streamingStatus === 'streaming'
         if (!isStreamingPlaceholder) {
           return {
             isStreaming: false,
             streamingMessageId: null as string | null,
           }
         }
-        const id = (last as any).__optimisticId || (last as any).id || null
+        const id = last.__optimisticId || last.id || null
         return { isStreaming: true, streamingMessageId: id }
       }
     }

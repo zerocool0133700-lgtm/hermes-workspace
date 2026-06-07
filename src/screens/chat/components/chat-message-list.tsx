@@ -441,10 +441,10 @@ function getChronologyRank(message: ChatMessage): number {
   const content = Array.isArray(message.content) ? message.content : []
   const hasToolCalls =
     content.some((part) => part.type === 'toolCall') ||
-    (Array.isArray((message as any).streamToolCalls) &&
-      (message as any).streamToolCalls.length > 0) ||
-    (Array.isArray((message as any).__streamToolCalls) &&
-      (message as any).__streamToolCalls.length > 0)
+    (Array.isArray(message.streamToolCalls) &&
+      message.streamToolCalls.length > 0) ||
+    (Array.isArray(message.__streamToolCalls) &&
+      message.__streamToolCalls.length > 0)
 
   if (role === 'user') return 0
   if (role === 'assistant' && hasToolCalls) return 1
@@ -470,12 +470,12 @@ function sortMessagesChronologically(
       if (leftRank !== rightRank) return leftRank - rightRank
 
       const leftHistoryIndex =
-        typeof (left.message as any).__historyIndex === 'number'
-          ? (left.message as any).__historyIndex
+        typeof left.message.__historyIndex === 'number'
+          ? left.message.__historyIndex
           : undefined
       const rightHistoryIndex =
-        typeof (right.message as any).__historyIndex === 'number'
-          ? (right.message as any).__historyIndex
+        typeof right.message.__historyIndex === 'number'
+          ? right.message.__historyIndex
           : undefined
       if (
         leftHistoryIndex !== undefined &&
@@ -486,12 +486,12 @@ function sortMessagesChronologically(
       }
 
       const leftRealtimeSequence =
-        typeof (left.message as any).__realtimeSequence === 'number'
-          ? (left.message as any).__realtimeSequence
+        typeof left.message.__realtimeSequence === 'number'
+          ? left.message.__realtimeSequence
           : undefined
       const rightRealtimeSequence =
-        typeof (right.message as any).__realtimeSequence === 'number'
-          ? (right.message as any).__realtimeSequence
+        typeof right.message.__realtimeSequence === 'number'
+          ? right.message.__realtimeSequence
           : undefined
       if (
         leftRealtimeSequence !== undefined &&
@@ -839,13 +839,11 @@ function ChatMessageListComponent({
           .join('')
           .trim()
         const hasAttachments =
-          Array.isArray((msg as any).attachments) &&
-          (msg as any).attachments.length > 0
+          Array.isArray(msg.attachments) && msg.attachments.length > 0
         const hasInlineImages =
-          Array.isArray((msg as any).inlineImages) &&
-          (msg as any).inlineImages.length > 0
+          Array.isArray(msg.inlineImages) && msg.inlineImages.length > 0
         const isPendingOptimisticUserMessage =
-          typeof (msg as any).__optimisticId === 'string' ||
+          typeof msg.__optimisticId === 'string' ||
           msg.status === 'sending' ||
           msg.status === 'queued'
 
@@ -884,12 +882,12 @@ function ChatMessageListComponent({
     const seenMessageIds = new Set<string>()
     const deduped = filteredMessages.filter((message) => {
       const messageId =
-        (message as any).id ||
-        (message as any).messageId ||
-        (message as any).clientId ||
-        (message as any).client_id ||
-        (message as any).nonce ||
-        (message as any).__optimisticId
+        message.id ||
+        message.messageId ||
+        message.clientId ||
+        message.client_id ||
+        message.nonce ||
+        message.__optimisticId
       if (typeof messageId !== 'string' || messageId.trim().length === 0) {
         return true
       }
@@ -1347,7 +1345,7 @@ function ChatMessageListComponent({
 
   function isMessageStreaming(message: ChatMessage, index: number) {
     if (!isStreaming || !streamingMessageId) return false
-    const messageId = message.__optimisticId || (message as any).id
+    const messageId = message.__optimisticId || message.id
     return (
       messageId === streamingMessageId ||
       (message.role === 'assistant' && index === lastAssistantIndex)
@@ -2109,11 +2107,11 @@ function djb2(str: string): string {
 
 function getRawMessageTimestamp(message: ChatMessage): number | null {
   const candidates = [
-    (message as any).createdAt,
-    (message as any).created_at,
-    (message as any).timestamp,
-    (message as any).time,
-    (message as any).ts,
+    message.createdAt,
+    message.created_at,
+    message.timestamp,
+    message.time,
+    message.ts,
   ]
   for (const candidate of candidates) {
     if (typeof candidate === 'number' && Number.isFinite(candidate)) {

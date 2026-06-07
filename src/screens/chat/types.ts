@@ -60,7 +60,24 @@ export type ChatAttachment = {
   height?: number
 }
 
-export type StreamingStatus = 'idle' | 'streaming' | 'complete' | 'error'
+export type StreamingStatus =
+  | 'idle'
+  | 'streaming'
+  | 'complete'
+  | 'interrupted'
+  | 'error'
+
+// Embedded stream tool-call entry persisted on a message so the tool-call
+// pills survive in history. Read defensively (every consumer narrows each
+// field), so the element type is intentionally permissive.
+export type StreamToolCallEntry = {
+  id?: string
+  name?: string
+  phase?: string
+  args?: unknown
+  preview?: string
+  result?: string
+}
 
 export type ChatMessage = {
   role?: string
@@ -72,6 +89,27 @@ export type ChatMessage = {
   isError?: boolean
   timestamp?: number
   [key: string]: unknown
+  // Identity / dedup fields (server- or client-assigned, all optional).
+  id?: string
+  messageId?: string
+  clientId?: string
+  client_id?: string
+  nonce?: string
+  // Alternate timestamp fields seen across transports; may be string or number.
+  createdAt?: string | number
+  created_at?: string | number
+  time?: string | number
+  ts?: string | number
+  // Embedded stream tool calls (underscore + legacy non-underscore variant).
+  __streamToolCalls?: Array<StreamToolCallEntry>
+  streamToolCalls?: Array<StreamToolCallEntry>
+  inlineImages?: Array<unknown>
+  // Display/ordering metadata attached during history processing.
+  __execNotification?: Record<string, unknown>
+  __isNarration?: boolean
+  __historyIndex?: number
+  __realtimeSequence?: number
+  __receiveTime?: number
   __optimisticId?: string
   __streamingStatus?: StreamingStatus
   __streamingText?: string

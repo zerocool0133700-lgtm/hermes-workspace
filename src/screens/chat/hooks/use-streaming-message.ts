@@ -831,7 +831,7 @@ export function useStreamingMessage(options: UseStreamingMessageOptions = {}) {
                 { type: 'text' as const, text: fullTextRef.current },
               ],
               __streamingStatus: 'interrupted',
-            } as any,
+            },
           })
         }
         eventSourceRef.current.abort()
