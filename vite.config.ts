@@ -443,17 +443,46 @@ const config = defineConfig(({ mode, command }) => {
         // not vitest — they import `@playwright/test`.
         '**/e2e/**',
       ],
+      coverage: {
+        provider: 'v8',
+        // Track coverage of source modules; reporters give a CI-readable number
+        // plus a browsable HTML report and a machine-readable summary.
+        reporter: ['text', 'json-summary', 'html'],
+        reportsDirectory: './coverage',
+        include: ['src/**/*.{ts,tsx}'],
+        exclude: [
+          'src/**/*.test.{ts,tsx}',
+          'src/**/*.d.ts',
+          'src/test/**',
+          'src/**/__tests__/**',
+          'src/routeTree.gen.ts',
+        ],
+        // Ratchet floor — set just below current coverage so it guards against
+        // regression without blocking. Raise these as the UI/route/store gaps
+        // (the large untested screen surface) get covered over time.
+        thresholds: {
+          statements: 15,
+          branches: 60,
+          functions: 24,
+          lines: 15,
+        },
+      },
       // Force vitest to run React through its own transform pipeline so ESM
       // `import` and CJS `require('react')` share a single module instance.
       // Without this, react-dom sets the dispatcher on its CJS React copy while
       // components call hooks on the ESM React copy → null dispatcher → crash.
-      deps: {
-        inline: [
-          'react',
-          'react-dom',
-          '@testing-library/react',
-          '@testing-library/dom',
-        ],
+      // Vitest 3 reads this under `server.deps.inline`; the old top-level
+      // `deps.inline` location is no longer applied, so component/hook tests
+      // (renderHook) regress to the null-dispatcher crash without this.
+      server: {
+        deps: {
+          inline: [
+            'react',
+            'react-dom',
+            '@testing-library/react',
+            '@testing-library/dom',
+          ],
+        },
       },
     },
     define: {
@@ -584,7 +613,13 @@ const config = defineConfig(({ mode, command }) => {
         projects: ['./tsconfig.json'],
       }),
       tailwindcss(),
-      tanstackStart(),
+      // The TanStack Start plugin rewrites React imports for its server-runtime
+      // build. Under Vitest that rewrite splits React into two module records
+      // (react-dom sets the dispatcher on one copy, hooks read it from the
+      // other) → "Cannot read properties of null (reading 'useState')" in any
+      // renderHook/render test. The plugin is irrelevant to unit tests, so omit
+      // it when running under Vitest. process.env.VITEST is set by the runner.
+      ...(process.env.VITEST ? [] : [tanstackStart()]),
       viteReact(),
       {
         name: 'workspace-daemon',
