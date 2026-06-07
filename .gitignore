@@ -155,3 +155,8 @@ pr-triage-20260505-*/
 
 # Generated esbuild bundle for the Electron desktop server (built during packaging).
 electron/server-bundle.cjs
+
+# Playwright artifacts.
+playwright-report/
+test-results/
+/.playwright/
