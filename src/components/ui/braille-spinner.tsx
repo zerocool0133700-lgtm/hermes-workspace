@@ -27,6 +27,26 @@ const D5 = 0x10,
   D7 = 0x40,
   D8 = 0x80
 
+// Claude caduceus motion 🦀
+// Open pincer → closing → gripped → releasing
+const CLAUDE_FRAMES: Array<string> = [
+  // Open wide - two "arms" spread
+  braille(D1, D4), // tips open
+  braille(D1, D2, D4, D5), // arms extending down
+  braille(D1, D2, D3, D4, D5, D6), // full arms open
+  braille(D1, D2, D3, D7, D4, D5, D6, D8), // arms + base (animation frame)
+  // Closing inward
+  braille(D2, D3, D7, D5, D6, D8), // tips retract, mid closes
+  braille(D3, D7, D6, D8), // closing more
+  braille(D7, D8), // gripped! just the base
+  braille(D3, D7, D6, D8), // grip pulse
+  braille(D7, D8), // gripped tight
+  // Releasing
+  braille(D3, D7, D6, D8), // opening
+  braille(D2, D3, D7, D5, D6, D8), // wider
+  braille(D1, D2, D3, D7, D4, D5, D6, D8), // fully open again
+]
+
 const PRESETS: Record<string, Array<string>> = {
   // Classic rotating braille spinner
   braille: '⠿⠧⠇⠏⠟⠻⠹⠸⠼⠾'.split(''),
@@ -58,25 +78,7 @@ const PRESETS: Record<string, Array<string>> = {
     braille(D2, D5),
   ],
 
-  // Claude caduceus motion 🦀
-  // Open pincer → closing → gripped → releasing
-  claude: [
-    // Open wide - two "arms" spread
-    braille(D1, D4), // tips open
-    braille(D1, D2, D4, D5), // arms extending down
-    braille(D1, D2, D3, D4, D5, D6), // full arms open
-    braille(D1, D2, D3, D7, D4, D5, D6, D8), // arms + base (animation frame)
-    // Closing inward
-    braille(D2, D3, D7, D5, D6, D8), // tips retract, mid closes
-    braille(D3, D7, D6, D8), // closing more
-    braille(D7, D8), // gripped! just the base
-    braille(D3, D7, D6, D8), // grip pulse
-    braille(D7, D8), // gripped tight
-    // Releasing
-    braille(D3, D7, D6, D8), // opening
-    braille(D2, D3, D7, D5, D6, D8), // wider
-    braille(D1, D2, D3, D7, D4, D5, D6, D8), // fully open again
-  ],
+  claude: CLAUDE_FRAMES,
 
   // Snake pattern
   snake: [
@@ -132,7 +134,7 @@ function BrailleSpinnerComponent({
   const [frame, setFrame] = useState(0)
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
-  const frames = PRESETS[preset] ?? PRESETS.claude
+  const frames = PRESETS[preset] ?? CLAUDE_FRAMES
 
   useEffect(() => {
     intervalRef.current = setInterval(() => {

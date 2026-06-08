@@ -44,6 +44,7 @@ function parseFrontmatter(content: string): Record<string, unknown> {
     const match = line.match(/^([A-Za-z0-9_-]+):\s*(.*)$/)
     if (!match) continue
     const [, key, rawValue] = match
+    if (key === undefined || rawValue === undefined) continue
     const value = rawValue.trim()
     if (value.startsWith('[') && value.endsWith(']')) {
       result[key] = value

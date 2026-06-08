@@ -64,7 +64,7 @@ async function getDefaultModel(): Promise<string> {
         const preferred = data.data.find((m) =>
           /qwen|llama|mistral|gemma/i.test(m.id),
         )
-        _cachedDefaultModel = preferred?.id ?? data.data[0].id
+        _cachedDefaultModel = preferred?.id ?? data.data[0]?.id ?? 'default'
         return _cachedDefaultModel
       }
     }

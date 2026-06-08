@@ -393,6 +393,6 @@ describe('readPresets', () => {
     __resetPresetsCacheForTests()
     const result = await readPresets()
     expect(result.source).toBe('user-file')
-    expect(result.presets[0].category).toBe('Custom')
+    expect(result.presets[0]?.category).toBe('Custom')
   })
 })

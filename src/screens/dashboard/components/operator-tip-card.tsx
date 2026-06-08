@@ -234,6 +234,7 @@ export function OperatorTipCard({
 
   if (ranked.length === 0) return null
   const tip = ranked[index % ranked.length]
+  if (!tip) return null
   const tone = TONE_COLORS[tip.tone ?? 'info']
 
   const handleNext = () => setIndex((i) => (i + 1) % ranked.length)

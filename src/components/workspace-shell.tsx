@@ -194,7 +194,7 @@ export function WorkspaceShell({ children }: WorkspaceShellProps) {
   })()
 
   const chatMatch = pathname.match(/^\/chat\/(.+)$/)
-  const activeFriendlyId = chatMatch ? chatMatch[1] : 'main'
+  const activeFriendlyId = chatMatch?.[1] ?? 'main'
   const isOnChatRoute = Boolean(chatMatch) || pathname === '/new'
   const isOnTerminalRoute = pathname.startsWith('/terminal')
   const isOnPlaygroundRoute =

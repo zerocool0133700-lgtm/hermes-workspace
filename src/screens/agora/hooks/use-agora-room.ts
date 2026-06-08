@@ -216,6 +216,7 @@ export function useAgoraRoom({
       if (others.length === 0) return
       const speaker = others[Math.floor(Math.random() * others.length)]
       const line = lines[Math.floor(Math.random() * lines.length)]
+      if (speaker === undefined || line === undefined) return
       setMessages((prev) => {
         const next: Array<AgoraMessage> = [
           ...prev,

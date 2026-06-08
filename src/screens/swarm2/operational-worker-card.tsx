@@ -199,12 +199,13 @@ async function fetchWorkerProject(
   return (await res.json()) as WorkerProjectSnapshot
 }
 
-function colorForWorker(workerId: string) {
+function colorForWorker(workerId: string): string {
+  const fallback = WORKER_COLORS[0] ?? '#34d399'
   const number = parseInt(workerId.replace(/\D/g, ''), 10)
   if (Number.isFinite(number) && number > 0) {
-    return WORKER_COLORS[(number - 1) % WORKER_COLORS.length]
+    return WORKER_COLORS[(number - 1) % WORKER_COLORS.length] ?? fallback
   }
-  return WORKER_COLORS[0]
+  return fallback
 }
 
 function formatAssignedModel(
@@ -591,9 +592,9 @@ export function OperationalWorkerCard({
                 <HugeiconsIcon icon={ArrowLeft01Icon} size={11} />
               </button>
               <div className="min-w-0 flex-1 text-center">
-                <div className="truncate">{activeFocusPanel.label}</div>
+                <div className="truncate">{activeFocusPanel?.label}</div>
                 <div className="truncate text-[10px] font-medium normal-case tracking-normal text-[var(--theme-muted)]/80">
-                  {activeFocusPanel.meta}
+                  {activeFocusPanel?.meta}
                 </div>
               </div>
               <div className="flex items-center gap-1">
@@ -623,7 +624,7 @@ export function OperationalWorkerCard({
             </div>
 
             <p className="mb-2 mx-auto max-w-2xl text-center text-[11px] leading-relaxed text-[var(--theme-muted)]">
-              {activeFocusPanel.helper}
+              {activeFocusPanel?.helper}
             </p>
 
             {focusPanel === 'tasks' ? (

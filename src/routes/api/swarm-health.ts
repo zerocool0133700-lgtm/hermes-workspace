@@ -173,8 +173,9 @@ export function parseModelAuthEventsFromText(text: string): {
       const match = line.match(pattern)
       if (!match) continue
       fallbackCount += 1
-      fallbackProvider = match[1]
-      fallbackModel = match[2]
+      const [, provider = null, model = null] = match
+      fallbackProvider = provider
+      fallbackModel = model
       lastFallbackAt = ts
       lastFallbackMessage = line.slice(0, 320)
       break

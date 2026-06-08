@@ -420,14 +420,17 @@ function mergeAssignments(
     existing.rationales.push(assignment.rationale)
     byWorker.set(assignment.workerId, existing)
   }
-  return [...byWorker.values()].map((entry) => ({
-    workerId: entry.workerId,
-    rationale: [...new Set(entry.rationales)].join(' + '),
-    task:
-      entry.tasks.length === 1
-        ? entry.tasks[0]
-        : `You have multiple orchestrator follow-ups. Execute them in order and return one complete checkpoint.\n\n${entry.tasks.map((task, index) => `## Follow-up ${index + 1}\n${task}`).join('\n\n')}`,
-  }))
+  return [...byWorker.values()].map((entry) => {
+    const firstTask = entry.tasks[0]
+    return {
+      workerId: entry.workerId,
+      rationale: [...new Set(entry.rationales)].join(' + '),
+      task:
+        entry.tasks.length === 1 && firstTask !== undefined
+          ? firstTask
+          : `You have multiple orchestrator follow-ups. Execute them in order and return one complete checkpoint.\n\n${entry.tasks.map((task, index) => `## Follow-up ${index + 1}\n${task}`).join('\n\n')}`,
+    }
+  })
 }
 
 function buildMainSessionPrompt(

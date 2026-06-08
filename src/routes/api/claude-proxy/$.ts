@@ -31,7 +31,7 @@ async function fallbackAvailableModels(
         const owned =
           typeof m.owned_by === 'string' ? m.owned_by.toLowerCase() : ''
         const idProvider = id.includes('/')
-          ? id.split('/')[0].toLowerCase()
+          ? (id.split('/')[0] ?? '').toLowerCase()
           : owned
         if (wanted && idProvider !== wanted) return null
         return { id }

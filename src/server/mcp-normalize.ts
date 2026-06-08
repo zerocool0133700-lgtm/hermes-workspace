@@ -350,19 +350,21 @@ const ENV_REF_RE = /^\$\{[A-Z][A-Z0-9_]*\}$/
  */
 export function maskSecretsInPlace(server: McpServer): McpServer {
   for (const key of Object.keys(server.env)) {
+    const envValue = server.env[key]
+    if (envValue === undefined) continue
     // Preserve env-ref form — it's a reference, not a literal secret
-    if (ENV_REF_RE.test(server.env[key])) continue
+    if (ENV_REF_RE.test(envValue)) continue
     server.env[key] =
-      server.env[key] && server.env[key].length > 0
-        ? MASK_SENTINEL
-        : ('' as McpMaskedValue)
+      envValue.length > 0 ? MASK_SENTINEL : ('' as McpMaskedValue)
   }
   for (const key of Object.keys(server.headers)) {
+    const headerValue = server.headers[key]
+    if (headerValue === undefined) continue
     // Preserve env-ref form in headers too
-    if (ENV_REF_RE.test(server.headers[key])) continue
+    if (ENV_REF_RE.test(headerValue)) continue
     if (isSecretKey(key)) {
       server.headers[key] = MASK_SENTINEL
-    } else if (server.headers[key].length > 0) {
+    } else if (headerValue.length > 0) {
       server.headers[key] = MASK_SENTINEL
     }
   }

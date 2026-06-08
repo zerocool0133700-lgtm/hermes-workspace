@@ -273,7 +273,7 @@ function OrchestratorCard({
         resetHint: ocFormatResetHint(l.resetsAt),
       }))
     setUsageRows(rows)
-    const name = primary.displayName.split(' ')[0]
+    const name = primary.displayName.split(' ').at(0) ?? primary.displayName
     const lbl = primary.plan ? `${name} ${primary.plan}` : name
     setProviderLabel(lbl.length > 14 ? name : lbl)
   }
@@ -286,7 +286,8 @@ function OrchestratorCard({
     const currentIdx = okProviders.findIndex(
       (p) => p.provider === preferredProvider,
     )
-    const next = okProviders[(currentIdx + 1) % okProviders.length]
+    const next = okProviders.at((currentIdx + 1) % okProviders.length)
+    if (!next) return
     setPreferredProvider(next.provider)
     try {
       localStorage.setItem(PREFERRED_PROVIDER_KEY_OC, next.provider)

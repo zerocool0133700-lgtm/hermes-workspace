@@ -29,7 +29,7 @@ describe('native Conductor fallback', () => {
       'reviewer',
       'qa',
     ])
-    expect(assignments[0].task).toContain('Conductor mission: Fix conductor')
+    expect(assignments[0]?.task).toContain('Conductor mission: Fix conductor')
     expect(assignments.every((assignment) => assignment.direct === true)).toBe(
       true,
     )

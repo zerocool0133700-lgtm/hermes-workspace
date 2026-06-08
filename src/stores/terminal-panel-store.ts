@@ -85,7 +85,9 @@ export const useTerminalPanelStore = create<TerminalPanelState>()(
             }
           }
           const activeTabId =
-            state.activeTabId === tabId ? nextTabs[0].id : state.activeTabId
+            state.activeTabId === tabId
+              ? (nextTabs.at(0)?.id ?? state.activeTabId)
+              : state.activeTabId
           return {
             tabs: nextTabs,
             activeTabId,
@@ -160,8 +162,9 @@ export const useTerminalPanelStore = create<TerminalPanelState>()(
           const activeExists = state.tabs.some(
             (tab) => tab.id === state.activeTabId,
           )
-          if (!activeExists) {
-            state.activeTabId = state.tabs[0].id
+          const firstTab = state.tabs.at(0)
+          if (!activeExists && firstTab) {
+            state.activeTabId = firstTab.id
           }
         }
       },

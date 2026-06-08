@@ -44,13 +44,13 @@ function sessionGlyph(s: {
   key: string
 }): string {
   if (typeof s.key === 'string' && s.key.startsWith('cron_')) {
-    return KIND_ICONS.cron
+    return KIND_ICONS.cron ?? '⏰'
   }
   const sourceKey = s.source?.toLowerCase()
   if (sourceKey && KIND_ICONS[sourceKey]) return KIND_ICONS[sourceKey]
   const kindKey = s.kind.toLowerCase()
   if (kindKey && KIND_ICONS[kindKey]) return KIND_ICONS[kindKey]
-  return KIND_ICONS.chat
+  return KIND_ICONS.chat ?? '💬'
 }
 
 function relativeTime(ms: number | null): string {

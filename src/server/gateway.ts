@@ -838,12 +838,13 @@ class GatewayClient {
 }
 
 function nextReconnectDelayMs(attempt: number) {
-  if (attempt < RECONNECT_DELAYS_MS.length) {
-    return RECONNECT_DELAYS_MS[attempt]
+  const fixedDelay = RECONNECT_DELAYS_MS[attempt]
+  if (fixedDelay !== undefined) {
+    return fixedDelay
   }
 
-  const doubled =
-    RECONNECT_DELAYS_MS[RECONNECT_DELAYS_MS.length - 1] * 2 ** (attempt - 2)
+  const lastDelay = RECONNECT_DELAYS_MS.at(-1) ?? MAX_RECONNECT_DELAY_MS
+  const doubled = lastDelay * 2 ** (attempt - 2)
   return Math.min(doubled, MAX_RECONNECT_DELAY_MS)
 }
 

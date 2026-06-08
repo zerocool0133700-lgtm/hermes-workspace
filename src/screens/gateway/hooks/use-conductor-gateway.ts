@@ -191,8 +191,8 @@ const AGENT_EMOJIS = ['🤖', '⚡', '🔥', '🌊', '🌿', '💫', '🔮', '�
 
 function getAgentPersona(index: number) {
   return {
-    name: AGENT_NAMES[index % AGENT_NAMES.length],
-    emoji: AGENT_EMOJIS[index % AGENT_EMOJIS.length],
+    name: AGENT_NAMES[index % AGENT_NAMES.length] ?? 'Agent',
+    emoji: AGENT_EMOJIS[index % AGENT_EMOJIS.length] ?? '🤖',
   }
 }
 
@@ -208,8 +208,8 @@ function extractTasksFromPlan(planText: string): Array<ConductorTask> {
   for (const pattern of patterns) {
     let match: RegExpExecArray | null
     while ((match = pattern.exec(planText)) !== null) {
-      const num = match[1]
-      const title = match[2].replace(/\*\*/g, '').trim()
+      const num = match.at(1) ?? ''
+      const title = (match.at(2) ?? '').replace(/\*\*/g, '').trim()
       const id = `task-${num}`
       if (!seen.has(id) && title.length > 3 && title.length < 200) {
         seen.add(id)
@@ -668,11 +668,11 @@ function prettifyCronLabel(value: string): string {
   // human-friendly tag instead of leaking the raw runtime key.
   const cronMatch = value.match(/^cron[_:]([0-9a-f]{6,})/i)
   if (cronMatch) {
-    return `Mission ${cronMatch[1].slice(0, 6)}`
+    return `Mission ${(cronMatch.at(1) ?? '').slice(0, 6)}`
   }
   const conductorMatch = value.match(/^conductor[-_](\d+)/i)
   if (conductorMatch) {
-    return `Mission ${conductorMatch[1].slice(-6)}`
+    return `Mission ${(conductorMatch.at(1) ?? '').slice(-6)}`
   }
   return value.replace(/[-_]+/g, ' ').trim()
 }
@@ -745,8 +745,8 @@ function getLastAssistantMessage(
   // Return the longest assistant message so we prefer the substantive work output.
   let best = ''
   for (let index = messages.length - 1; index >= 0; index -= 1) {
-    const message = messages[index]
-    if (message.role !== 'assistant') continue
+    const message = messages.at(index)
+    if (!message || message.role !== 'assistant') continue
     const text = extractHistoryMessageText(message).trim()
     if (text.length > best.length) best = text
   }
@@ -770,8 +770,9 @@ function extractSessionIdFromMission(
 
   const lines = readMissionLines(mission)
   for (let index = lines.length - 1; index >= 0; index -= 1) {
-    const match = lines[index].match(/\bsession_id:\s*([A-Za-z0-9_.:-]+)/)
-    if (match?.[1]) return match[1]
+    const match = lines.at(index)?.match(/\bsession_id:\s*([A-Za-z0-9_.:-]+)/)
+    const sessionId = match?.[1]
+    if (sessionId) return sessionId
   }
   return null
 }

@@ -35,12 +35,14 @@ function formatMobileSessionTitle(rawTitle: string): string {
     .filter(Boolean)
   if (
     parts.length >= 2 &&
-    parts[0].toLowerCase() === 'agent' &&
-    parts[1].length > 0
+    parts[0]?.toLowerCase() === 'agent' &&
+    (parts[1]?.length ?? 0) > 0
   ) {
-    const candidate = parts[parts.length - 1]
-    if (candidate.toLowerCase() === 'main') return 'Main Chat'
-    return `${toTitleCase(candidate)} Chat`
+    const candidate = parts.at(-1)
+    if (candidate !== undefined) {
+      if (candidate.toLowerCase() === 'main') return 'Main Chat'
+      return `${toTitleCase(candidate)} Chat`
+    }
   }
 
   // Common system prompts → friendly names

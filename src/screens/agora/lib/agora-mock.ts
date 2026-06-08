@@ -71,14 +71,18 @@ export function buildMockAgoraUsers(opts: {
     { x: worldWidth * 0.25, y: worldHeight * 0.7 },
     { x: worldWidth * 0.78, y: worldHeight * 0.72 },
   ]
-  return MOCK_PROFILES.map((profile, i) => ({
-    profile,
-    x: positions[i % positions.length].x,
-    y: positions[i % positions.length].y,
-    facing: (['down', 'left', 'right', 'up'] as const)[i % 4],
-    isSelf: false,
-    isMoving: false,
-  }))
+  const facings = ['down', 'left', 'right', 'up'] as const
+  return MOCK_PROFILES.map((profile, i) => {
+    const pos = positions[i % positions.length] ?? { x: 0, y: 0 }
+    return {
+      profile,
+      x: pos.x,
+      y: pos.y,
+      facing: facings[i % facings.length] ?? 'down',
+      isSelf: false,
+      isMoving: false,
+    }
+  })
 }
 
 /**

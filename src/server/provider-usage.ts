@@ -1081,8 +1081,8 @@ export async function getProviderUsage(
     const names = ['Claude (OAuth)', 'Codex', 'OpenAI', 'OpenRouter', 'Gemini']
     const ids = ['claude', 'codex', 'openai', 'openrouter', 'gemini']
     return {
-      provider: ids[i],
-      displayName: names[i],
+      provider: ids[i] ?? 'unknown',
+      displayName: names[i] ?? 'Unknown',
       status: 'error' as const,
       message: r.reason instanceof Error ? r.reason.message : String(r.reason),
       lines: [],

@@ -82,7 +82,7 @@ function cleanUserText(raw: string): string {
     /\[(?:Telegram|Signal|Discord|WhatsApp|iMessage|Slack|GoogleChat)\s[^\]]*\]\s*([\s\S]*)/i,
   )
   if (channelHeaderMatch) {
-    text = channelHeaderMatch[1]
+    text = channelHeaderMatch[1] ?? ''
   }
 
   // Remove <media:audio> / <media:image> / <media:video> tags

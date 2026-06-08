@@ -159,7 +159,7 @@ function buildMultimodalContent(
       if (!b64) {
         const dataUrl = (att.dataUrl || '') as string
         if (dataUrl.startsWith('data:') && dataUrl.includes(',')) {
-          b64 = dataUrl.split(',')[1]
+          b64 = dataUrl.split(',')[1] ?? ''
         }
       }
       if (!b64) continue
@@ -1433,6 +1433,7 @@ export const Route = createFileRoute('/api/send-stream')({
                             let lastAssistantIndex = -1
                             for (let i = recent.length - 1; i >= 0; i--) {
                               const m = recent[i]
+                              if (m === undefined) continue
                               if (m.role === 'assistant') {
                                 lastAssistantIndex = i
                                 break

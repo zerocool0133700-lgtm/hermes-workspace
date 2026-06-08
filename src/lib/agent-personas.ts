@@ -216,15 +216,15 @@ export function assignPersona(
     }
   }
 
-  let persona: AgentPersona
-  if (bestMatch && bestScore > 0) {
-    persona = bestMatch
-  } else if (available.length > 0) {
-    // Deterministic pick from available based on session key hash
-    persona = available[hashCode(sessionKey) % available.length]
-  } else {
-    // All 8 taken — hash into the full pool (allows duplicates beyond 8)
-    persona = AGENT_PERSONAS[hashCode(sessionKey) % AGENT_PERSONAS.length]
+  const availablePick = available[hashCode(sessionKey) % available.length]
+  const poolPick = AGENT_PERSONAS[hashCode(sessionKey) % AGENT_PERSONAS.length]
+  // Deterministic pick from available, falling back to the full pool.
+  const persona: AgentPersona | undefined =
+    bestMatch && bestScore > 0 ? bestMatch : (availablePick ?? poolPick)
+
+  if (!persona) {
+    // AGENT_PERSONAS is a non-empty constant, so this is unreachable.
+    throw new Error('No agent persona available')
   }
 
   assignedPersonas.set(sessionKey, persona)

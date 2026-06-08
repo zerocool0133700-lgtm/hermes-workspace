@@ -803,7 +803,7 @@ function shortSkillName(raw: string): string {
  */
 function shortModelName(raw: string): string {
   if (!raw) return raw
-  return raw.split('/').slice(-1)[0]
+  return raw.split('/').at(-1) ?? raw
 }
 
 /**
@@ -825,22 +825,20 @@ function computeInsights(
   // 1. Peak day driver
   let peakIsToday = false
   if (analytics.daily.length >= 3) {
-    let peakIdx = 0
     let peakVal = 0
-    for (let i = 0; i < analytics.daily.length; i += 1) {
-      const total =
-        analytics.daily[i].inputTokens + analytics.daily[i].outputTokens
+    let peakDay = ''
+    for (const entry of analytics.daily) {
+      const total = entry.inputTokens + entry.outputTokens
       if (total > peakVal) {
         peakVal = total
-        peakIdx = i
+        peakDay = entry.day
       }
     }
     if (peakVal > 0) {
-      const driver =
-        analytics.topModels.length > 0
-          ? `, driven by ${shortModelName(analytics.topModels[0].id)}`
-          : ''
-      const peakDay = analytics.daily[peakIdx].day
+      const topModel = analytics.topModels.at(0)
+      const driver = topModel
+        ? `, driven by ${shortModelName(topModel.id)}`
+        : ''
       const todayIso = new Date().toISOString().slice(0, 10)
       peakIsToday = peakDay === todayIso
       out.push({
@@ -855,9 +853,10 @@ function computeInsights(
     const mid = Math.floor(analytics.daily.length / 2)
     let prior = 0
     let recent = 0
-    for (let i = 0; i < mid; i += 1) prior += analytics.daily[i].cacheReadTokens
-    for (let i = mid; i < analytics.daily.length; i += 1)
-      recent += analytics.daily[i].cacheReadTokens
+    analytics.daily.forEach((entry, i) => {
+      if (i < mid) prior += entry.cacheReadTokens
+      else recent += entry.cacheReadTokens
+    })
     if (prior > 0) {
       const delta = ((recent - prior) / prior) * 100
       if (Math.abs(delta) >= 5) {

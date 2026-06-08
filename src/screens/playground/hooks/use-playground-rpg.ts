@@ -5,7 +5,7 @@ import {
   PLAYGROUND_WORLDS,
   itemById,
 } from '../lib/playground-rpg'
-import { AVATAR_PRESETS, saveAvatarConfig } from '../lib/avatar-config'
+import { DEFAULT_AVATAR_CONFIG, saveAvatarConfig } from '../lib/avatar-config'
 import type {
   EquipmentSlot,
   PlayerProfile,
@@ -81,7 +81,7 @@ function defaultQuestProgress(): Record<string, QuestProgressEntry> {
 function defaultProfile(): PlayerProfile {
   return {
     displayName: '',
-    avatarConfig: AVATAR_PRESETS.hermes,
+    avatarConfig: DEFAULT_AVATAR_CONFIG,
     equipped: { ...EMPTY_EQUIPPED },
     inventory: [],
     questProgress: defaultQuestProgress(),

@@ -36,7 +36,7 @@ function normalizeModel(
 
   return {
     id,
-    provider: model.provider ?? id.split('/')[0],
+    provider: model.provider ?? id.split('/')[0] ?? id,
     name:
       model.label ??
       model.displayName ??

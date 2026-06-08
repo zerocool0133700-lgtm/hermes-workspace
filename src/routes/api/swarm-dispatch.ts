@@ -1326,7 +1326,7 @@ export async function dispatchSwarmAssignments(body: DispatchRequest) {
     : requestedMissionId
       ? ''
       : assignments.length === 1
-        ? assignments[0].task.slice(0, 120)
+        ? (assignments[0]?.task.slice(0, 120) ?? '')
         : `${assignments.length} assigned tasks`
   const mission = createOrUpdateMission({
     missionId: requestedMissionId || null,
@@ -1385,7 +1385,7 @@ export async function dispatchSwarmAssignments(body: DispatchRequest) {
     mission: latestMission,
     prompt:
       assignments.length === 1
-        ? assignments[0].task
+        ? (assignments[0]?.task ?? '')
         : `${assignments.length} assigned tasks`,
     assignments,
     timeoutSeconds,

@@ -7,6 +7,17 @@ import type {
 import type { ModelPresetId } from './team-panel'
 import { cn } from '@/lib/utils'
 
+// Stable fallback for indexed accent lookups so a defined accent always flows
+// even when an index lands outside AGENT_ACCENT_COLORS.
+const DEFAULT_ACCENT = AGENT_ACCENT_COLORS[0] ?? {
+  bar: 'bg-neutral-500',
+  border: 'border-neutral-500',
+  avatar: 'bg-neutral-100',
+  text: 'text-neutral-600',
+  ring: 'ring-neutral-500/20',
+  hex: '#737373',
+}
+
 export type RemoteSession = {
   sessionKey: string
   label: string
@@ -245,7 +256,7 @@ function getSpeechLine(agent: AgentWorkingRow, phase: number): string {
     'Getting water 💧',
   ]
   if (agent.status === 'idle' || agent.status === 'ready') {
-    return socialLines[Math.floor(phase / 4) % socialLines.length]
+    return socialLines[Math.floor(phase / 4) % socialLines.length] ?? ''
   }
   return ''
 }
@@ -716,15 +727,16 @@ export function OfficeView({
 
   // Assign agents to desks, idle agents wander to social spots
   const agentPositions = agentRows.map((agent, index) => {
-    const desk = deskPositions[index % deskPositions.length]
+    const desk = deskPositions[index % deskPositions.length] ?? { x: 0, y: 0 }
     const isIdle = agent.status === 'idle' || agent.status === 'ready'
     const isPaused = agent.status === 'paused'
 
     // Idle/paused agents wander between desk and social spots
     if (isIdle || isPaused) {
       const wanderCycle = Math.floor((tick + index * 17) / 25) % 4 // 0=desk, 1=walking, 2=social, 3=walking back
-      const socialSpot =
-        socialSpots[(index + Math.floor(tick / 60)) % socialSpots.length]
+      const socialSpot = socialSpots[
+        (index + Math.floor(tick / 60)) % socialSpots.length
+      ] ?? { x: 0, y: 0 }
       const t = ((tick + index * 17) % 25) / 25
 
       if (wanderCycle === 0) {
@@ -749,8 +761,9 @@ export function OfficeView({
         }
       } else {
         // Walking back
-        const socialSpotBack =
-          socialSpots[(index + Math.floor(tick / 60)) % socialSpots.length]
+        const socialSpotBack = socialSpots[
+          (index + Math.floor(tick / 60)) % socialSpots.length
+        ] ?? { x: 0, y: 0 }
         return {
           x: socialSpotBack.x + (desk.x - socialSpotBack.x) * t,
           y: socialSpotBack.y + (desk.y - 20 - socialSpotBack.y) * t,
@@ -818,7 +831,8 @@ export function OfficeView({
         <div className="space-y-2">
           {agentRows.map((agent, index) => {
             const accent =
-              AGENT_ACCENT_COLORS[index % AGENT_ACCENT_COLORS.length]
+              AGENT_ACCENT_COLORS[index % AGENT_ACCENT_COLORS.length] ??
+              DEFAULT_ACCENT
             const statusMeta = getAgentStatusMeta(agent.status)
             const emoji = getAgentEmoji(agent)
             return (
@@ -1064,8 +1078,15 @@ export function OfficeView({
             Position scaling: SVG uses viewBox 0 0 sceneW sceneH and scales to fit container,
             so we express positions as percentages of the scene to match the SVG's scale. */}
         {agentRows.map((agent, index) => {
-          const accent = AGENT_ACCENT_COLORS[index % AGENT_ACCENT_COLORS.length]
-          const pos = agentPositions[index]
+          const accent =
+            AGENT_ACCENT_COLORS[index % AGENT_ACCENT_COLORS.length] ??
+            DEFAULT_ACCENT
+          const pos = agentPositions[index] ?? {
+            x: 0,
+            y: 0,
+            atDesk: true,
+            stationary: true,
+          }
           const emoji = getAgentEmoji(agent)
           const isSelected = agent.id === selectedOutputAgentId
           const isActive = agent.status === 'active'

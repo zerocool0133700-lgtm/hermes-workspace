@@ -104,7 +104,8 @@ export function resolveSwarmModelLabel(
   // Provider-prefixed full id (already in canonical form). Pass through.
   const slashMatch = label.trim().match(/^([\w.-]+)\/(.+)$/)
   if (slashMatch) {
-    return { provider: slashMatch[1], default: slashMatch[2] }
+    const [, provider = '', model = ''] = slashMatch
+    return { provider, default: model }
   }
 
   return null

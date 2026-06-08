@@ -651,8 +651,9 @@ export function UsageMeter({ visible = true }: { visible?: boolean }) {
         (l) => l.format === 'tokens' && l.used !== undefined,
       )
       const total = tokenLines.reduce((sum, l) => sum + (l.used ?? 0), 0)
-      if (total > 0) {
-        byProvider[p.displayName.split(' ')[0]] = { input: total, output: 0 }
+      const providerKey = p.displayName.split(' ')[0]
+      if (total > 0 && providerKey !== undefined) {
+        byProvider[providerKey] = { input: total, output: 0 }
       }
     })
     return byProvider

@@ -196,7 +196,7 @@ export function UsageMeterCompact() {
         }))
       setProgressRows(rows)
 
-      const name = primary.displayName.split(' ')[0]
+      const name = primary.displayName.split(' ')[0] ?? ''
       const label = primary.plan ? `${name} ${primary.plan}` : name
       setProviderLabel(label.length > 14 ? name : label)
     },

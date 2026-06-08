@@ -34,7 +34,7 @@ const COMMUNITY_NAMES = [
   'ForgeBaron',
   'OracleNote',
   'ArenaRook',
-]
+] as const
 
 export const BOT_PROFILES: Record<PlaygroundWorldId, Array<BotProfile>> = {
   training: [

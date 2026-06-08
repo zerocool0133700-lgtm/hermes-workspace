@@ -162,9 +162,10 @@ export function updateTask(
 ): TaskRecord | null {
   const file = readTaskFile()
   const index = file.tasks.findIndex((task) => task.id === taskId)
-  if (index === -1) return null
+  const existing = index === -1 ? undefined : file.tasks[index]
+  if (!existing) return null
 
-  const current = normalizeTask(file.tasks[index])
+  const current = normalizeTask(existing)
   const next = normalizeTask({
     ...current,
     ...updates,

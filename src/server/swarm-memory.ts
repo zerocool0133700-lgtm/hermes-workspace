@@ -557,8 +557,8 @@ function newestEpisodeContent(
   const entries = readdirSync(root)
     .filter((name) => /^\d{4}-\d{2}-\d{2}\.md$/.test(name))
     .sort()
-  if (!entries.length) return null
-  const latest = entries[entries.length - 1]
+  const latest = entries.at(-1)
+  if (latest === undefined) return null
   return {
     date: latest.replace(/\.md$/, ''),
     content: readTextIfExists(join(root, latest)),

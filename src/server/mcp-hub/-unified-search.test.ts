@@ -68,7 +68,7 @@ describe('unifiedSearch — basic', () => {
 
     const result = await unifiedSearch('github', 'all', 20)
     expect(result.results).toHaveLength(1)
-    expect(result.results[0].name).toBe('github')
+    expect(result.results[0]?.name).toBe('github')
   })
 
   it('deduplicates by source:name key', async () => {
@@ -120,7 +120,7 @@ describe('unifiedSearch — installed flag', () => {
     mockFetchLocalFile.mockResolvedValue({ entries: [] })
 
     const result = await unifiedSearch('', 'all', 20)
-    expect(result.results[0].installed).toBe(true)
+    expect(result.results[0]?.installed).toBe(true)
   })
 
   it('defaults installed=false when getConfig throws', async () => {
@@ -131,7 +131,7 @@ describe('unifiedSearch — installed flag', () => {
     mockFetchLocalFile.mockResolvedValue({ entries: [] })
 
     const result = await unifiedSearch('', 'all', 20)
-    expect(result.results[0].installed).toBe(false)
+    expect(result.results[0]?.installed).toBe(false)
   })
 })
 
@@ -157,7 +157,7 @@ describe('unifiedSearch — partial failure', () => {
     // Request only remote sources — unifiedSearch should auto-add local fallback
     const result = await unifiedSearch('', 'mcp-get', 20)
     expect(result.results).toHaveLength(1)
-    expect(result.results[0].name).toBe('fallback-preset')
+    expect(result.results[0]?.name).toBe('fallback-preset')
     expect(result.warnings!.some((w) => w.includes('fallback'))).toBe(true)
   })
 
@@ -208,7 +208,7 @@ describe('unifiedSearch — degraded fallback', () => {
     const result = await unifiedSearch('', 'mcp-get', 20)
     // Should have triggered local fallback
     expect(result.results).toHaveLength(1)
-    expect(result.results[0].name).toBe('local-fallback')
+    expect(result.results[0]?.name).toBe('local-fallback')
     expect(result.warnings).toBeDefined()
     expect(result.warnings!.some((w) => w.includes('fallback'))).toBe(true)
   })

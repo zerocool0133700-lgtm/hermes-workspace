@@ -102,7 +102,13 @@ export function TaskCard({
               }
             >
               {(() => {
-                const [y, m, d] = task.due_date.split('-').map(Number)
+                const parts = task.due_date.split('-').map(Number)
+                const y = parts.at(0)
+                const m = parts.at(1)
+                const d = parts.at(2)
+                if (y === undefined || m === undefined || d === undefined) {
+                  return task.due_date
+                }
                 return new Date(y, m - 1, d).toLocaleDateString('en-US', {
                   month: 'short',
                   day: 'numeric',

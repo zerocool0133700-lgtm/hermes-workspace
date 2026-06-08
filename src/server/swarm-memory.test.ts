@@ -111,6 +111,6 @@ describe('swarm-memory module', () => {
       limit: 5,
     })
     expect(results.length).toBeGreaterThan(0)
-    expect(results[0].snippet).toMatch(/rendezvous/)
+    expect(results[0]?.snippet).toMatch(/rendezvous/)
   })
 })

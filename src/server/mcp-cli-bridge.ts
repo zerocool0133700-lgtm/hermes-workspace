@@ -126,7 +126,7 @@ export function parseHermesTestOutput(raw: string): CliTestResult {
     if (failed) {
       result.status = 'failed'
       result.latencyMs = Number(failed[1])
-      result.error = failed[2].trim() || 'Connection failed'
+      result.error = (failed[2] ?? '').trim() || 'Connection failed'
       continue
     }
     const connected = connectedRe.exec(line)
@@ -142,13 +142,13 @@ export function parseHermesTestOutput(raw: string): CliTestResult {
     }
     if (inToolList) {
       const tool = toolRe.exec(line)
-      if (tool) {
+      if (tool && tool[1]) {
         // Preserve CLI's trailing "..." marker (descriptions truncated to
         // ~55 chars by the CLI) so the user can see the description was
         // cut off rather than thinking it's the full text. Codex feedback.
         result.discoveredTools.push({
           name: tool[1],
-          description: tool[2].trim(),
+          description: (tool[2] ?? '').trim(),
         })
       }
       // CLI prints a blank line between "Tools discovered: N" and the

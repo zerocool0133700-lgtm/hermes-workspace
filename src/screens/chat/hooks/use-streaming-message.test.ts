@@ -258,7 +258,9 @@ describe('useStreamingMessage', () => {
     expect(result.current.streamingText).toBe('Hello, world')
 
     // The completed message carries the accumulated text + completion marker.
-    const message = onComplete.mock.calls[0][0]
+    const firstCall = onComplete.mock.calls.at(0)
+    if (!firstCall) throw new Error('onComplete was not called')
+    const message = firstCall[0]
     expect(message.role).toBe('assistant')
     expect(message.__streamingStatus).toBe('complete')
     expect(message.content).toContainEqual({

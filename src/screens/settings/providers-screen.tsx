@@ -199,7 +199,7 @@ async function fetchModels(): Promise<{
           : typeof record.owned_by === 'string' && record.owned_by.trim()
             ? record.owned_by.trim()
             : id.includes('/')
-              ? id.split('/')[0]
+              ? (id.split('/')[0] ?? 'hermes-agent')
               : 'hermes-agent'
 
       return {

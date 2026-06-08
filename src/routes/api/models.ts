@@ -217,7 +217,7 @@ function resolveConfiguredSecret(value: unknown): string {
   const raw = readString(value)
   if (!raw) return ''
   const envMatch = raw.match(/^\$\{?([A-Z0-9_]+)\}?$/i)
-  if (envMatch) return process.env[envMatch[1]] ?? ''
+  if (envMatch?.[1]) return process.env[envMatch[1]] ?? ''
   return raw
 }
 

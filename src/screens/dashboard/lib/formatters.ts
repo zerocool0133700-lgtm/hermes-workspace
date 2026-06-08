@@ -50,9 +50,10 @@ export function formatModelName(raw: string): string {
       /gemini[- _]?(\d+(?:[._]\d+)*)(?:[- _]?(flash|pro|ultra|exp))?/i,
     )
     if (match) {
-      const version = match[1].replace(/[_]/g, '.')
-      const variant = match[2]
-        ? ` ${match[2].charAt(0).toUpperCase()}${match[2].slice(1)}`
+      const version = (match.at(1) ?? '').replace(/[_]/g, '.')
+      const variantRaw = match.at(2)
+      const variant = variantRaw
+        ? ` ${variantRaw.charAt(0).toUpperCase()}${variantRaw.slice(1)}`
         : ''
       return `Gemini ${version}${variant}`
     }

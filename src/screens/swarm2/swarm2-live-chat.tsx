@@ -340,9 +340,7 @@ export function Swarm2LiveChat({
     const text = draft.trim()
     if (!text || isSending) return
     const sentAt = Date.now()
-    const baselineLastId = messages.length
-      ? messages[messages.length - 1].id
-      : null
+    const baselineLastId = messages.at(-1)?.id ?? null
     setLocalPending({ prompt: text, sentAt, baselineLastId })
     setDraft('')
     try {
@@ -414,9 +412,7 @@ export function Swarm2LiveChat({
                 const text = value.trim()
                 if (!text || isSending) return
                 const sentAt = Date.now()
-                const baselineLastId = messages.length
-                  ? messages[messages.length - 1].id
-                  : null
+                const baselineLastId = messages.at(-1)?.id ?? null
                 setLocalPending({ prompt: text, sentAt, baselineLastId })
                 helpers.reset()
                 void sendMessage(text).catch(() => {

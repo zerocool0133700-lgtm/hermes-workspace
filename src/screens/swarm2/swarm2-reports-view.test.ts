@@ -41,14 +41,16 @@ describe('Swarm2 reports view model', () => {
       ],
     })
 
-    expect(rows[0]).toMatchObject({
+    const row = rows.at(0)
+    expect(row).toBeDefined()
+    expect(row).toMatchObject({
       kind: 'checkpoint',
       workerId: 'swarm5',
       state: 'needs_review',
       stateLabel: 'Needs review',
       summary: 'Page is implemented.',
     })
-    expect(rows[0].artifacts[0].path).toBe(
+    expect(row?.artifacts.at(0)?.path).toBe(
       'src/screens/swarm2/swarm2-reports-view.tsx',
     )
   })
@@ -96,14 +98,16 @@ describe('Swarm2 reports view model', () => {
       ],
     })
 
-    expect(rows[0]).toMatchObject({
+    const row = rows.at(0)
+    expect(row).toBeDefined()
+    expect(row).toMatchObject({
       workerId: 'swarm4',
       state: 'needs_review',
       stateLabel: 'Needs review',
       summary: 'Reviewer inbox is ready for Eric handoff',
     })
     expect(
-      rows[0].details.find((detail) => detail.label === 'Result')?.value,
+      row?.details.find((detail) => detail.label === 'Result')?.value,
     ).toBe('Reviewer inbox is ready for Eric handoff')
   })
 
@@ -130,9 +134,9 @@ describe('Swarm2 reports view model', () => {
       runtimes: [],
     })
 
-    expect(rows[0].state).toBe('blocked')
-    expect(rows[0].stateLabel).toBe('Blocked')
-    expect(rows[0].summary).toBe('Missing token')
+    expect(rows.at(0)?.state).toBe('blocked')
+    expect(rows.at(0)?.stateLabel).toBe('Blocked')
+    expect(rows.at(0)?.summary).toBe('Missing token')
   })
 
   it('does not classify BLOCKER: none checkpoints as blocked', () => {
@@ -163,8 +167,8 @@ describe('Swarm2 reports view model', () => {
       runtimes: [],
     })
 
-    expect(rows[0].state).toBe('ready')
-    expect(rows[0].stateLabel).toBe('Ready')
-    expect(rows[0].summary).toBe('Patch shipped')
+    expect(rows.at(0)?.state).toBe('ready')
+    expect(rows.at(0)?.stateLabel).toBe('Ready')
+    expect(rows.at(0)?.summary).toBe('Patch shipped')
   })
 })

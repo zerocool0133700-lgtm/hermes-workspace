@@ -412,7 +412,7 @@ function parseDiffLineTotals(
   if (!line) return null
   const match = line.match(/^(.*?)\s+\|\s+(\d+)\s+([+-]+)$/)
   if (!match) return null
-  const markers = match[3]
+  const markers = match[3] ?? ''
   return {
     additions: markers.split('').filter((value) => value === '+').length,
     deletions: markers.split('').filter((value) => value === '-').length,
@@ -648,7 +648,8 @@ export function extractSingleCheckpoint(
   payload: unknown,
 ): WorkspaceCheckpoint | null {
   const checkpoints = extractCheckpoints(payload)
-  if (checkpoints.length > 0) return checkpoints[0]
+  const first = checkpoints[0]
+  if (first) return first
 
   const record = asRecord(payload)
   if (!record) return null

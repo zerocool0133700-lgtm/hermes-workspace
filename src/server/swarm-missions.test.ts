@@ -242,6 +242,9 @@ describe('swarm-missions', () => {
     })
     const implementation = mission.assignments[0]
     const finalAction = mission.assignments[1]
+    if (!implementation || !finalAction) {
+      throw new Error('expected two assignments')
+    }
     finalAction.dependsOn = [implementation.id]
 
     const checkpoint = {

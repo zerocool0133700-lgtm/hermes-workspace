@@ -191,6 +191,7 @@ export async function unifiedSearch(
 
   for (let i = 0; i < settledResults.length; i++) {
     const settled = settledResults[i]
+    if (!settled) continue
     const sourceId = allSourceLabels[i]
 
     if (settled.status === 'rejected') {

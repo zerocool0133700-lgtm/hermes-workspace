@@ -337,9 +337,7 @@ export const Route = createFileRoute('/api/swarm-direct-chat')({
 
         const profilePath = getProfilePath(workerId)
         const baselineChat = readWorkerMessages(profilePath, limit)
-        const baselineLastId = baselineChat.messages.length
-          ? baselineChat.messages[baselineChat.messages.length - 1].id
-          : null
+        const baselineLastId = baselineChat.messages.at(-1)?.id ?? null
 
         const delivered = await sendPromptToLiveSession(workerId, prompt)
         if (!delivered.ok) {

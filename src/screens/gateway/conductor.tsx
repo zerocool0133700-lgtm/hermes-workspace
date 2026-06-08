@@ -163,8 +163,8 @@ function persistConductorGoalDraft(value: string): void {
 
 function getAgentPersona(index: number) {
   return {
-    name: AGENT_NAMES[index % AGENT_NAMES.length],
-    emoji: AGENT_EMOJIS[index % AGENT_EMOJIS.length],
+    name: AGENT_NAMES[index % AGENT_NAMES.length] ?? 'Agent',
+    emoji: AGENT_EMOJIS[index % AGENT_EMOJIS.length] ?? '🤖',
   }
 }
 
@@ -886,7 +886,7 @@ function getLastAssistantMessage(
   if (!Array.isArray(messages)) return ''
   for (let index = messages.length - 1; index >= 0; index -= 1) {
     const message = messages[index]
-    if (message.role !== 'assistant') continue
+    if (!message || message.role !== 'assistant') continue
     const text = extractMessageText(message)
     if (text.trim()) return text.trim()
   }
@@ -1235,7 +1235,7 @@ export function Conductor() {
             : ('idle' as const)
       return {
         id: s.key ?? `session-${i}`,
-        name: OFFICE_NAMES[i % OFFICE_NAMES.length],
+        name: OFFICE_NAMES[i % OFFICE_NAMES.length] ?? 'Agent',
         modelId: s.model ?? 'auto',
         status,
         lastLine: s.task ?? s.label ?? s.title ?? s.derivedTitle ?? 'Working…',

@@ -77,10 +77,10 @@ describe('fetchMcpGet — 200 OK', () => {
 
     const result = await fetchMcpGet()
     expect(result.entries).toHaveLength(2)
-    expect(result.entries[0].name).toBe('github-mcp')
-    expect(result.entries[0].source).toBe('mcp-get')
-    expect(result.entries[0].trust).toBe('community')
-    expect(result.entries[0].id).toBe('mcp-get:github-mcp')
+    expect(result.entries[0]?.name).toBe('github-mcp')
+    expect(result.entries[0]?.source).toBe('mcp-get')
+    expect(result.entries[0]?.trust).toBe('community')
+    expect(result.entries[0]?.id).toBe('mcp-get:github-mcp')
     expect(result.warnings).toBeUndefined()
   })
 

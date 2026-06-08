@@ -74,13 +74,14 @@ function applyOverrides(
   for (const ph of placeholders) {
     if (!Object.hasOwn(overrides, ph.path)) continue
     const val = overrides[ph.path]
+    if (val === undefined) continue
     if (ph.kind === 'url') {
       out.url = val
     } else if (ph.kind === 'arg') {
       // Parse index from "args[N]"
       const m = ph.path.match(/^args\[(\d+)\]$/)
       if (m) {
-        const idx = parseInt(m[1], 10)
+        const idx = parseInt(m[1] ?? '', 10)
         if (out.args) out.args[idx] = val
       }
     } else {

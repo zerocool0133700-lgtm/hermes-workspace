@@ -717,7 +717,8 @@ function ChatSidebarComponent({
 
     function handleTouchStart(event: TouchEvent) {
       if (event.touches.length !== 1) return
-      const touch = event.touches[0]
+      const touch = event.touches.item(0)
+      if (!touch) return
       swipeStartRef.current = { x: touch.clientX, y: touch.clientY }
     }
 
@@ -725,7 +726,8 @@ function ChatSidebarComponent({
       const start = swipeStartRef.current
       swipeStartRef.current = null
       if (!start || event.changedTouches.length !== 1) return
-      const touch = event.changedTouches[0]
+      const touch = event.changedTouches.item(0)
+      if (!touch) return
       const dx = touch.clientX - start.x
       const dy = touch.clientY - start.y
       if (Math.abs(dy) > MAX_VERTICAL_DRIFT_PX) return
@@ -1281,8 +1283,9 @@ function areSessionsEqual(
   if (prevSessions === nextSessions) return true
   if (prevSessions.length !== nextSessions.length) return false
   for (let i = 0; i < prevSessions.length; i += 1) {
-    const prev = prevSessions[i]
-    const next = nextSessions[i]
+    const prev = prevSessions.at(i)
+    const next = nextSessions.at(i)
+    if (prev === undefined || next === undefined) return false
     if (prev.key !== next.key) return false
     if (prev.friendlyId !== next.friendlyId) return false
     if (prev.label !== next.label) return false

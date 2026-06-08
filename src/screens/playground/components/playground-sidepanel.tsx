@@ -635,9 +635,8 @@ function QuestsTab({
             </div>
             <div className="mt-1 space-y-0.5">
               {quest.objectives.map((objective) => {
-                const complete = progress.completedObjectives.includes(
-                  objective.id,
-                )
+                const complete =
+                  progress?.completedObjectives.includes(objective.id) ?? false
                 return (
                   <div
                     key={objective.id}

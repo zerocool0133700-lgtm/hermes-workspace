@@ -152,7 +152,9 @@ export function MobileTabBar() {
 
   // Drag-to-switch: horizontal swipe across pill switches tabs
   const handlePillTouchStart = useCallback((event: TouchEvent<HTMLElement>) => {
-    dragStartXRef.current = event.touches[0].clientX
+    const touch = Array.from(event.touches).at(0)
+    if (!touch) return
+    dragStartXRef.current = touch.clientX
     dragStartTimeRef.current = Date.now()
     setIsDragging(false)
   }, [])
@@ -170,7 +172,9 @@ export function MobileTabBar() {
       setIsDragging(false)
 
       if (startX === null) return
-      const endX = event.changedTouches[0].clientX
+      const endTouch = Array.from(event.changedTouches).at(0)
+      if (!endTouch) return
+      const endX = endTouch.clientX
       const delta = endX - startX
       const elapsed = Date.now() - (dragStartTimeRef.current ?? Date.now())
       const pillWidth = navRef.current?.getBoundingClientRect().width ?? 200
@@ -185,13 +189,10 @@ export function MobileTabBar() {
           ? Math.min(currentIdx + 1, MOBILE_NAV_TABS.length - 1) // swipe left → next tab
           : Math.max(currentIdx - 1, 0) // swipe right → prev tab
 
-      if (
-        nextIdx !== currentIdx &&
-        nextIdx >= 0 &&
-        nextIdx < MOBILE_NAV_TABS.length
-      ) {
+      const nextTab = MOBILE_NAV_TABS.at(nextIdx)
+      if (nextIdx !== currentIdx && nextIdx >= 0 && nextTab) {
         hapticTap()
-        void navigate({ to: MOBILE_NAV_TABS[nextIdx].to })
+        void navigate({ to: nextTab.to })
       }
     },
     [navigate, pathname],

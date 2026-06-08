@@ -308,6 +308,12 @@ function EmptyCard({ title, description, tone = 'neutral' }: EmptyCardProps) {
 // MarketplaceGrid — Phase 3.0 Marketplace tab
 // ---------------------------------------------------------------------------
 
+const UNVERIFIED_PILL = {
+  label: 'Unverified',
+  className:
+    'border-red-200 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-950/40 dark:text-red-300',
+}
+
 const TRUST_PILL: Record<string, { label: string; className: string }> = {
   official: {
     label: 'Official',
@@ -319,11 +325,7 @@ const TRUST_PILL: Record<string, { label: string; className: string }> = {
     className:
       'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-300',
   },
-  unverified: {
-    label: 'Unverified',
-    className:
-      'border-red-200 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-950/40 dark:text-red-300',
-  },
+  unverified: UNVERIFIED_PILL,
 }
 
 const SOURCE_LABEL: Record<string, string> = {
@@ -373,7 +375,7 @@ function MarketplaceGrid({
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
       <AnimatePresence initial={false}>
         {entries.map((entry) => {
-          const trust = TRUST_PILL[entry.trust] ?? TRUST_PILL.unverified
+          const trust = TRUST_PILL[entry.trust] ?? UNVERIFIED_PILL
           const sourceLabel = SOURCE_LABEL[entry.source] ?? entry.source
 
           return (

@@ -64,7 +64,7 @@ export function ProviderLogo({
         )}
         style={{ width: size, height: size }}
       >
-        {(provider || 'C')[0].toUpperCase()}
+        {((provider || 'C')[0] ?? 'C').toUpperCase()}
       </div>
     )
   }

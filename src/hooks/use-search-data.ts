@@ -149,7 +149,8 @@ function flattenFileTree(
     if (Array.isArray(entry.children)) {
       const children = entry.children as Array<Record<string, unknown>>
       for (let index = children.length - 1; index >= 0; index -= 1) {
-        stack.push(children[index])
+        const child = children[index]
+        if (child) stack.push(child)
       }
     }
   }

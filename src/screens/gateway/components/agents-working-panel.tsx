@@ -46,6 +46,8 @@ const ACCENT_COLORS = [
   { bar: 'bg-amber-500', text: 'text-amber-600' },
 ]
 
+const DEFAULT_ACCENT = { bar: 'bg-orange-500', text: 'text-orange-600' }
+
 const MODEL_BADGE: Record<string, string> = {
   auto: 'border border-neutral-200 bg-neutral-100 text-neutral-600',
   opus: 'border border-orange-200 bg-orange-50 text-orange-700',
@@ -144,7 +146,8 @@ function AgentRow({
   onSteer?: (message: string) => void
 }) {
   const [menuOpen, setMenuOpen] = useState(false)
-  const accent = ACCENT_COLORS[accentIndex % ACCENT_COLORS.length]
+  const accent =
+    ACCENT_COLORS[accentIndex % ACCENT_COLORS.length] ?? DEFAULT_ACCENT
   const isActive = agent.status === 'active'
   const isSpawning = agent.status === 'spawning'
   const canSteer =
@@ -327,7 +330,8 @@ function AgentCompactCard({
   isSelected: boolean
   onSelect: () => void
 }) {
-  const accent = ACCENT_COLORS[accentIndex % ACCENT_COLORS.length]
+  const accent =
+    ACCENT_COLORS[accentIndex % ACCENT_COLORS.length] ?? DEFAULT_ACCENT
   const isActive = agent.status === 'active'
 
   return (

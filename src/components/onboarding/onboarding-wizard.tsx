@@ -39,7 +39,7 @@ export function OnboardingWizard() {
   const isLastStep = currentStep === totalSteps - 1
 
   useEffect(() => {
-    setCanProceed(step.canProceedByDefault ?? true)
+    setCanProceed(step?.canProceedByDefault ?? true)
   }, [step])
 
   const handleComplete = useCallback(() => {
@@ -82,7 +82,7 @@ export function OnboardingWizard() {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [handleKeyDown])
 
-  if (!isOpen) return null
+  if (!isOpen || !step) return null
 
   return (
     <AnimatePresence>

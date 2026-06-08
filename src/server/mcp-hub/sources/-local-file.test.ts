@@ -46,6 +46,7 @@ describe('fetchLocalFile', () => {
 
     expect(result.entries).toHaveLength(1)
     const entry = result.entries[0]
+    if (!entry) throw new Error('expected entry to be defined')
     expect(entry.source).toBe('local')
     expect(entry.trust).toBe('official')
     expect(entry.name).toBe('github')
@@ -144,6 +145,8 @@ describe('fetchLocalFile', () => {
     })
 
     const result = await fetchLocalFile()
-    expect(result.entries[0].homepage).toBeNull()
+    const entry = result.entries[0]
+    if (!entry) throw new Error('expected entry to be defined')
+    expect(entry.homepage).toBeNull()
   })
 })

@@ -90,7 +90,7 @@ function gitChangedFiles(cwd: string, max = 25): Array<string> {
       .slice(0, max)
       .map((line) => {
         const m = line.match(/^[A-Z?! ]{1,2}\s+(.+)$/)
-        return m ? m[1].replace(/^"|"$/g, '') : line
+        return m ? (m[1] ?? '').replace(/^"|"$/g, '') : line
       })
   } catch {
     return []

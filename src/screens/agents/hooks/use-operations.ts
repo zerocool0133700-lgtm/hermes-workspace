@@ -590,20 +590,23 @@ export function useOperations() {
         systemPrompt: agent.systemPrompt,
       })
       const agentSessions = getAgentSessions(agent.id, sessions)
-      const latestSession = agentSessions[0] ?? null
+      const latestSession = agentSessions.at(0) ?? null
       const jobs = getAgentJobs(agent.id, cronJobs)
-      const nextRunAt =
+      const nextRunAt: number | null =
         jobs
           .filter((job) => job.enabled)
           .map((job) => readTimestamp(job.nextRunAt))
           .filter((value): value is number => value !== null)
-          .sort((left, right) => left - right)[0] ?? null
-      const lastActivityAt =
-        readTimestamp(latestSession.updatedAt) ??
+          .sort((left, right) => left - right)
+          .at(0) ?? null
+      const lastActivityAt: number | null =
+        readTimestamp(latestSession?.updatedAt) ??
         jobs
           .map((job) => readTimestamp(job.lastRun?.startedAt))
           .filter((value): value is number => value !== null)
-          .sort((left, right) => right - left)[0]
+          .sort((left, right) => right - left)
+          .at(0) ??
+        null
       const status = getAgentStatus(latestSession)
       const recentOutputs = [
         ...agentSessions.map((session) =>

@@ -66,7 +66,7 @@ export function parseSwarmCheckpoint(
     // position regardless of formatting.
     const cleanLine = line.replace(/\*\*/g, '')
     const match = cleanLine.match(/^\s*([A-Z_ -]{3,24})\s*:\s*(.*)$/i)
-    const label = match ? normalizeLabel(match[1]) : null
+    const label = match?.[1] !== undefined ? normalizeLabel(match[1]) : null
     if (label) {
       current = label
       fields[current] = match?.[2] ?? ''

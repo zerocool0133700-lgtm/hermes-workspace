@@ -108,7 +108,7 @@ export function PlaygroundDialog({
   function handleNextLore() {
     if (!npc) return
     setShowLore(true)
-    setReply(npc.lore[loreIdx % npc.lore.length])
+    setReply(npc.lore[loreIdx % npc.lore.length] ?? null)
     setLoreIdx((i) => i + 1)
   }
 
@@ -163,7 +163,9 @@ export function PlaygroundDialog({
       const t: ChatTurn = {
         role: 'assistant',
         content:
-          fallbackLines[Math.floor(Math.random() * fallbackLines.length)],
+          fallbackLines[Math.floor(Math.random() * fallbackLines.length)] ??
+          fallbackLines[0] ??
+          '',
         ts: Date.now(),
         fallback: true,
       }

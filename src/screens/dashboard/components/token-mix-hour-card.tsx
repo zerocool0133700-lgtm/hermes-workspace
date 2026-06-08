@@ -86,7 +86,9 @@ export function TokenMixHourCard({
       if (!ts) continue
       const date = new Date(ts)
       const hour = date.getHours()
-      if (hour >= 0 && hour < 24) counts[hour] += 1
+      const current = counts.at(hour)
+      if (hour >= 0 && hour < 24 && current !== undefined)
+        counts[hour] = current + 1
     }
     return counts
   }, [sessions])

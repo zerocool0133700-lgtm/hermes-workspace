@@ -235,7 +235,7 @@ const LABEL_COLORS = [
 function labelColor(tier1: string): string {
   let hash = 0
   for (const char of tier1) hash = (hash * 31 + char.charCodeAt(0)) >>> 0
-  return LABEL_COLORS[hash % LABEL_COLORS.length] ?? LABEL_COLORS[0]
+  return LABEL_COLORS.at(hash % LABEL_COLORS.length) ?? ''
 }
 
 function parseTaskLabel(tag: string): ParsedTaskLabel | null {

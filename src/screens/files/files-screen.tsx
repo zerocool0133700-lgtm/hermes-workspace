@@ -191,11 +191,14 @@ function computeDiff(original: string, updated: string): Array<DiffLine> {
     new Array(n + 1).fill(0),
   )
   for (let i = 1; i <= m; i++) {
+    const row = dp.at(i)
+    const prevRow = dp.at(i - 1)
+    if (!row || !prevRow) continue
     for (let j = 1; j <= n; j++) {
-      if (aLines[i - 1] === bLines[j - 1]) {
-        dp[i][j] = dp[i - 1][j - 1] + 1
+      if (aLines.at(i - 1) === bLines.at(j - 1)) {
+        row[j] = (prevRow.at(j - 1) ?? 0) + 1
       } else {
-        dp[i][j] = Math.max(dp[i - 1][j], dp[i][j - 1])
+        row[j] = Math.max(prevRow.at(j) ?? 0, row.at(j - 1) ?? 0)
       }
     }
   }
@@ -205,19 +208,24 @@ function computeDiff(original: string, updated: string): Array<DiffLine> {
   let i = m
   let j = n
   while (i > 0 || j > 0) {
-    if (i > 0 && j > 0 && aLines[i - 1] === bLines[j - 1]) {
+    const rowI = dp.at(i) ?? []
+    const rowPrev = dp.at(i - 1) ?? []
+    if (i > 0 && j > 0 && aLines.at(i - 1) === bLines.at(j - 1)) {
       result.push({
         kind: 'unchanged',
-        text: aLines[i - 1],
+        text: aLines.at(i - 1) ?? '',
         leftNum: i,
         rightNum: j,
       })
       i--
       j--
-    } else if (j > 0 && (i === 0 || dp[i][j - 1] >= dp[i - 1][j])) {
+    } else if (
+      j > 0 &&
+      (i === 0 || (rowI.at(j - 1) ?? 0) >= (rowPrev.at(j) ?? 0))
+    ) {
       result.push({
         kind: 'added',
-        text: bLines[j - 1],
+        text: bLines.at(j - 1) ?? '',
         leftNum: null,
         rightNum: j,
       })
@@ -225,7 +233,7 @@ function computeDiff(original: string, updated: string): Array<DiffLine> {
     } else {
       result.push({
         kind: 'removed',
-        text: aLines[i - 1],
+        text: aLines.at(i - 1) ?? '',
         leftNum: i,
         rightNum: null,
       })

@@ -252,9 +252,11 @@ function Ground({ world }: { world: WorldDef }) {
   // Build a subtle procedural grass color variation by jittering vertex colors
   const grassGeo = useMemo(() => {
     const g = new THREE.PlaneGeometry(120, 120, 80, 80)
-    const colors = new Float32Array(g.attributes.position.count * 3)
+    const positionAttr = g.attributes.position
+    const vertexCount = positionAttr ? positionAttr.count : 0
+    const colors = new Float32Array(vertexCount * 3)
     const base = new THREE.Color(world.groundColor)
-    for (let i = 0; i < g.attributes.position.count; i++) {
+    for (let i = 0; i < vertexCount; i++) {
       const c = base.clone()
       const jitter = (Math.random() - 0.5) * 0.08
       c.r = Math.max(0, Math.min(1, c.r + jitter * 0.6))
@@ -488,12 +490,14 @@ function ClassicalPillars({ world }: { world: WorldDef }) {
         color={world.accent}
       />
       {/* Braziers around the central statue */}
-      {[
-        [-3.2, -3.2],
-        [3.2, -3.2],
-        [-3.2, 3.2],
-        [3.2, 3.2],
-      ].map(([x, z], i) => (
+      {(
+        [
+          [-3.2, -3.2],
+          [3.2, -3.2],
+          [-3.2, 3.2],
+          [3.2, 3.2],
+        ] as Array<[number, number]>
+      ).map(([x, z], i) => (
         <Brazier key={i} position={[x, 0, z]} color="#fbbf24" />
       ))}
     </>
@@ -552,12 +556,14 @@ function TechPillars({ world }: { world: WorldDef }) {
         ember="#ff8a3d"
       />
       {/* Cyan-flame Forge braziers */}
-      {[
-        [-5, -5],
-        [5, -5],
-        [-5, 5],
-        [5, 5],
-      ].map(([x, z], i) => (
+      {(
+        [
+          [-5, -5],
+          [5, -5],
+          [-5, 5],
+          [5, 5],
+        ] as Array<[number, number]>
+      ).map(([x, z], i) => (
         <Brazier key={i} position={[x, 0, z]} color={world.accent} />
       ))}
       {/* Tech-banners with Hermes sigil */}
@@ -2114,7 +2120,7 @@ function NPC({
     const tick = () => {
       if (stop) return
       const line = lines[Math.floor(Math.random() * lines.length)]
-      setAmbient(line)
+      setAmbient(line ?? null)
       window.setTimeout(() => {
         if (!stop) setAmbient(null)
       }, 6000)
@@ -2821,6 +2827,7 @@ function PlayerAndCamera({
         event.preventDefault()
         idx = (idx + 1) % presets.length
         const p = presets[idx]
+        if (!p) return
         camYaw.current = p.yaw
         camPitch.current = p.pitch
         camDistance.current = p.distance
@@ -4646,14 +4653,16 @@ function GuildProps({ accent }: { accent: string }) {
         <boxGeometry args={[5, 2.2, 0.18]} />
         <meshStandardMaterial color="#3f2511" roughness={0.78} />
       </mesh>
-      {[
-        [-2, 1.9],
-        [0, 1.9],
-        [2, 1.9],
-        [-2, 0.9],
-        [0, 0.9],
-        [2, 0.9],
-      ].map(([x, y], i) => (
+      {(
+        [
+          [-2, 1.9],
+          [0, 1.9],
+          [2, 1.9],
+          [-2, 0.9],
+          [0, 0.9],
+          [2, 0.9],
+        ] as Array<[number, number]>
+      ).map(([x, y], i) => (
         <mesh key={i} position={[x, y, -7.5]}>
           <planeGeometry args={[1.4, 0.85]} />
           <meshStandardMaterial

@@ -61,7 +61,7 @@ function parseMarkdownIntoBlocks(markdown: string): Array<string> {
 function extractLanguage(className?: string): string {
   if (!className) return 'text'
   const match = className.match(/language-(\w+)/)
-  return match ? match[1] : 'text'
+  return match?.[1] ?? 'text'
 }
 
 type TableRenderContextValue = {

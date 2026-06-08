@@ -860,8 +860,9 @@ export const useChatStore = create<ChatState>((set, get) => ({
           status: undefined,
         }
 
-        if (optimisticIndex >= 0) {
-          const optimisticMessage = sessionMessages[optimisticIndex]
+        const optimisticMessage =
+          optimisticIndex >= 0 ? sessionMessages[optimisticIndex] : undefined
+        if (optimisticMessage) {
           const incomingText = extractMessageText(incomingMessage)
           const optimisticText = extractMessageText(optimisticMessage)
           const incomingHasAttachments =
@@ -1006,16 +1007,15 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
         const nextToolCalls = [...prev.toolCalls]
 
-        if (existingToolIndex >= 0) {
+        const existingToolCall =
+          existingToolIndex >= 0 ? nextToolCalls[existingToolIndex] : undefined
+        if (existingToolCall) {
           nextToolCalls[existingToolIndex] = {
-            ...nextToolCalls[existingToolIndex],
+            ...existingToolCall,
             phase: event.phase,
-            args: event.args ?? nextToolCalls[existingToolIndex].args,
-            preview:
-              (event as any).preview ??
-              nextToolCalls[existingToolIndex].preview,
-            result:
-              (event as any).result ?? nextToolCalls[existingToolIndex].result,
+            args: event.args ?? existingToolCall.args,
+            preview: (event as any).preview ?? existingToolCall.preview,
+            result: (event as any).result ?? existingToolCall.result,
           }
         } else {
           // Create entry for ANY phase (complete, error, skill.loaded, artifact.created, etc.)

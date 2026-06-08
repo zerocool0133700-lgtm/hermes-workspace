@@ -332,9 +332,7 @@ function SkillsTab() {
   const grouped: Record<string, Array<SkillItem>> = {}
   for (const skill of skills) {
     const cat = skill.category || 'Uncategorized'
-    const bucket = Object.hasOwn(grouped, cat)
-      ? grouped[cat]
-      : (grouped[cat] = [])
+    const bucket = grouped[cat] ?? (grouped[cat] = [])
     bucket.push(skill)
   }
 

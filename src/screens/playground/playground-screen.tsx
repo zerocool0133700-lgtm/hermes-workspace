@@ -34,7 +34,10 @@ import { botsFor } from './lib/playground-bots'
 import { PLAYGROUND_WORLDS, itemById } from './lib/playground-rpg'
 import type { ChatMessage } from './components/playground-chat'
 import type { ReactNode } from 'react'
-import type { PlaygroundWorldId } from './lib/playground-rpg'
+import type {
+  PlaygroundWorldId,
+  QuestProgressEntry,
+} from './lib/playground-rpg'
 import type { RemotePlayer } from './hooks/use-playground-multiplayer'
 import { useWorkspaceStore } from '@/stores/workspace-store'
 
@@ -255,10 +258,11 @@ export function PlaygroundScreen() {
   }, [activeQuest?.id, currentObjective?.id])
 
   useEffect(() => {
+    const trainingProgress: QuestProgressEntry | undefined =
+      rpg.state.playerProfile.questProgress['training-q1']
     if (
       activeQuest?.id === 'training-q1' &&
-      rpg.state.playerProfile.questProgress['training-q1'].completedObjectives
-        .length > 0 &&
+      (trainingProgress?.completedObjectives.length ?? 0) > 0 &&
       !rpg.state.completedQuests.includes('training-q1')
     ) {
       setOnboardingHintOpen(true)
@@ -324,9 +328,10 @@ export function PlaygroundScreen() {
     function tick() {
       if (cancelled) return
       const bots = botsFor(world)
-      if (bots.length > 0) {
-        const bot = bots[Math.floor(Math.random() * bots.length)]
-        const line = bot.lines[Math.floor(Math.random() * bot.lines.length)]
+      const bot = bots.at(Math.floor(Math.random() * bots.length))
+      if (bot) {
+        const line =
+          bot.lines.at(Math.floor(Math.random() * bot.lines.length)) ?? ''
         const msg: ChatMessage = {
           id: `${Date.now()}-${Math.random()}`,
           authorId: `bot:${bot.id}`,

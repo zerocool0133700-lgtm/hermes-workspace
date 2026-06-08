@@ -331,7 +331,7 @@ export function getLocale(): LocaleId {
   const full = navigator.language
   if (full in LOCALES) return full as LocaleId
   const lang = full.split('-')[0]
-  if (lang in LOCALES) return lang as LocaleId
+  if (lang && lang in LOCALES) return lang as LocaleId
   return 'en'
 }
 

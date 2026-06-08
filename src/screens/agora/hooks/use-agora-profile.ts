@@ -29,7 +29,8 @@ function generateInitialProfile(): AgoraProfile {
     typeof crypto !== 'undefined' && 'randomUUID' in crypto
       ? crypto.randomUUID()
       : `agora-${Math.random().toString(36).slice(2, 10)}`
-  const animal = FUNNY_ANIMALS[Math.floor(Math.random() * FUNNY_ANIMALS.length)]
+  const animal =
+    FUNNY_ANIMALS[Math.floor(Math.random() * FUNNY_ANIMALS.length)] ?? 'Owl'
   const num = Math.floor(Math.random() * 9000) + 1000
   const handle = `${animal.toLowerCase()}${num}`
   return {

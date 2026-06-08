@@ -64,7 +64,7 @@ export function PlaygroundHeroCanvas() {
         orbit: 0.18 + Math.random() * 0.22,
         speed: 0.4 + Math.random() * 0.5,
         size: 1.5 + Math.random() * 2.4,
-        color: palette[Math.floor(Math.random() * palette.length)],
+        color: palette[Math.floor(Math.random() * palette.length)] ?? '#ffffff',
       })
 
     // Agent network nodes — fixed positions on the ring, connected with thin lines.
@@ -81,7 +81,7 @@ export function PlaygroundHeroCanvas() {
       agentNodes.push({
         a: (i / 6) * Math.PI * 2,
         r: 1.0,
-        color: agentColors[i],
+        color: agentColors[i] ?? '#ffffff',
       })
 
     let t = 0
@@ -168,6 +168,7 @@ export function PlaygroundHeroCanvas() {
         for (let j = i + 1; j < nodePts.length; j++) {
           const a = nodePts[i]
           const b = nodePts[j]
+          if (!a || !b) continue
           const grad = ctx.createLinearGradient(a.x, a.y, b.x, b.y)
           grad.addColorStop(0, `${a.color}55`)
           grad.addColorStop(1, `${b.color}55`)

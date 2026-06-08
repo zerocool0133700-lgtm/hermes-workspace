@@ -299,7 +299,11 @@ export function createSupabaseReservationStore(): NameReservationStore {
         )
       }
       const rows = (await response.json()) as Array<SupabaseReservationRow>
-      return mapSupabaseRow(rows[0])
+      const row = rows[0]
+      if (!row) {
+        throw new Error('Failed to create reservation: empty response')
+      }
+      return mapSupabaseRow(row)
     },
     async countReservations() {
       const response = await supabaseRequest('name_reservations?select=id', {

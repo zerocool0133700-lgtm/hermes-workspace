@@ -337,6 +337,6 @@ describe('normalizeMcpListFromConfig (Phase 1.5 fallback)', () => {
       },
     })
     expect(list.length).toBe(1)
-    expect(list[0].name).toBe('gh')
+    expect(list[0]?.name).toBe('gh')
   })
 })

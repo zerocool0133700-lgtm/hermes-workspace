@@ -251,15 +251,15 @@ export function MobileSetupModal({ isOpen, onClose }: MobileSetupModalProps) {
               transition={{ duration: 0.2 }}
             >
               <div className="mb-2 flex items-center gap-2">
-                {currentStep.showTailscaleIcon ? <TailscaleIcon /> : null}
+                {currentStep?.showTailscaleIcon ? <TailscaleIcon /> : null}
                 <h3 className="text-sm font-semibold text-primary-100">
-                  {currentStep.title}
+                  {currentStep?.title}
                 </h3>
               </div>
               <p className="mb-4 text-sm text-primary-300">
-                {currentStep.body}
+                {currentStep?.body}
               </p>
-              <div>{currentStep.action}</div>
+              <div>{currentStep?.action}</div>
             </motion.div>
           </AnimatePresence>
         </div>

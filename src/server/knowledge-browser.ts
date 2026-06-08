@@ -94,7 +94,7 @@ function parseFrontmatter(raw: string): {
   }
 
   try {
-    const parsed = YAML.parse(match[1])
+    const parsed = YAML.parse(match[1] ?? '')
     return {
       data:
         parsed && typeof parsed === 'object' ? (parsed as FrontmatterData) : {},

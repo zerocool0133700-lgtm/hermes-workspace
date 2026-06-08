@@ -100,7 +100,7 @@ describe('fetchGenericJson', () => {
         'community',
       )
       expect(result.entries.length).toBeGreaterThan(0)
-      expect(result.entries[0].name).toBe('my-server')
+      expect(result.entries[0]?.name).toBe('my-server')
     })
 
     it('parses top-level array []', async () => {
@@ -118,7 +118,7 @@ describe('fetchGenericJson', () => {
         'community',
       )
       expect(result.entries.length).toBeGreaterThan(0)
-      expect(result.entries[0].name).toBe('srv-a')
+      expect(result.entries[0]?.name).toBe('srv-a')
     })
 
     it('parses { manifests: [] } shape', async () => {
@@ -213,7 +213,7 @@ describe('fetchGenericJson', () => {
         'https://example.com',
         'unverified',
       )
-      expect(result.entries[0].trust).toBe('unverified')
+      expect(result.entries[0]?.trust).toBe('unverified')
     })
 
     it('promotes verified:true entries to community (trust cap prevents official)', async () => {
@@ -231,7 +231,7 @@ describe('fetchGenericJson', () => {
         'community',
       )
       // MEDIUM-3: user sources cannot emit 'official' — capped to 'community'
-      expect(result.entries[0].trust).toBe('community')
+      expect(result.entries[0]?.trust).toBe('community')
     })
   })
 
@@ -270,7 +270,7 @@ describe('fetchGenericJson', () => {
       })
 
       await fetchGenericJson('test-source', 'https://example.com', 'community')
-      const headers = fetchSpy.mock.calls[0][1]?.headers as Record<
+      const headers = fetchSpy.mock.calls[0]?.[1]?.headers as Record<
         string,
         string
       >
@@ -505,7 +505,7 @@ describe('fetchGenericJson', () => {
         'community',
       )
       expect(result.entries).toHaveLength(1)
-      expect(result.entries[0].name).toBe('small-server')
+      expect(result.entries[0]?.name).toBe('small-server')
       expect(result.degraded).toBeUndefined()
     })
   })
@@ -633,7 +633,7 @@ describe('fetchGenericJson', () => {
         'https://corp.example.com/feed',
         'community',
       )
-      expect(result.entries[0].trust).toBe('community')
+      expect(result.entries[0]?.trust).toBe('community')
     })
 
     it('keeps unverified trust as-is', async () => {
@@ -649,7 +649,7 @@ describe('fetchGenericJson', () => {
         'https://corp.example.com/feed',
         'unverified',
       )
-      expect(result.entries[0].trust).toBe('unverified')
+      expect(result.entries[0]?.trust).toBe('unverified')
     })
 
     it('source field uses user:<sourceId> format for user sources', async () => {
@@ -665,7 +665,7 @@ describe('fetchGenericJson', () => {
         'https://corp.example.com/feed',
         'community',
       )
-      expect(result.entries[0].source).toBe('user:my-corp')
+      expect(result.entries[0]?.source).toBe('user:my-corp')
     })
   })
 })

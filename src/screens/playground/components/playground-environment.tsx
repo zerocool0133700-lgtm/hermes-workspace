@@ -574,7 +574,8 @@ export function FlowerPatch({
       const dz = (r() - 0.5) * 1.2
       out.push({
         pos: [dx, 0, dz],
-        color: palette[Math.floor(r() * palette.length)],
+        color:
+          palette[Math.floor(r() * palette.length)] ?? palette[0] ?? '#fde68a',
       })
     }
     return out

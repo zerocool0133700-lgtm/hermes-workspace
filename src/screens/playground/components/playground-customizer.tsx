@@ -64,7 +64,10 @@ export function PlaygroundCustomizer({
   }
 
   function loadPreset(name: string) {
-    const preset = AVATAR_PRESETS[name]
+    const preset = Object.hasOwn(AVATAR_PRESETS, name)
+      ? AVATAR_PRESETS[name]
+      : undefined
+    if (preset === undefined) return
     setCfg(preset)
     saveAvatarConfig(preset)
     onChange?.(preset)
@@ -213,9 +216,13 @@ export function PlaygroundCustomizer({
           <div className="flex gap-2">
             <button
               onClick={() => {
-                saveAvatarConfig(AVATAR_PRESETS.hermes)
-                setCfg(AVATAR_PRESETS.hermes)
-                onChange?.(AVATAR_PRESETS.hermes)
+                const hermesPreset = Object.hasOwn(AVATAR_PRESETS, 'hermes')
+                  ? AVATAR_PRESETS.hermes
+                  : undefined
+                if (hermesPreset === undefined) return
+                saveAvatarConfig(hermesPreset)
+                setCfg(hermesPreset)
+                onChange?.(hermesPreset)
               }}
               className="rounded-lg border border-white/15 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.12em] text-white/75 hover:bg-white/5"
             >

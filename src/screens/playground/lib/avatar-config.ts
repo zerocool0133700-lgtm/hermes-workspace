@@ -198,15 +198,28 @@ export const PORTRAITS = [
 
 const KEY = 'hermes-playground-avatar-config'
 
+export const DEFAULT_AVATAR_CONFIG: AvatarConfig = AVATAR_PRESETS.hermes ?? {
+  skin: '#fcd34d',
+  hair: '#3f2511',
+  hairStyle: 'short',
+  eyes: '#0b1220',
+  outfit: '#2dd4bf',
+  outfitAccent: '#facc15',
+  cape: '#0891b2',
+  helmet: 'winged',
+  weapon: 'sword',
+  portrait: 'hermes',
+}
+
 export function loadAvatarConfig(): AvatarConfig {
-  if (typeof window === 'undefined') return AVATAR_PRESETS.hermes
+  if (typeof window === 'undefined') return DEFAULT_AVATAR_CONFIG
   try {
     const raw = window.localStorage.getItem(KEY)
-    if (!raw) return AVATAR_PRESETS.hermes
+    if (!raw) return DEFAULT_AVATAR_CONFIG
     const parsed = JSON.parse(raw)
-    return { ...AVATAR_PRESETS.hermes, ...parsed }
+    return { ...DEFAULT_AVATAR_CONFIG, ...parsed }
   } catch {
-    return AVATAR_PRESETS.hermes
+    return DEFAULT_AVATAR_CONFIG
   }
 }
 

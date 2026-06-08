@@ -398,7 +398,7 @@ export function TerminalWorkspace({
           if (_bi > 0 && _bi % 10 === 0)
             await new Promise((r) => setTimeout(r, 0))
           const block = blocks[_bi]
-          if (!block.trim()) continue
+          if (!block || !block.trim()) continue
           const lines = block.split('\n')
           let eventName = ''
           let eventData = ''
@@ -605,8 +605,9 @@ export function TerminalWorkspace({
         createTab(DEFAULT_TERMINAL_CWD)
         return
       }
-      if (!activeTabId) {
-        setActiveTab(tabs[0].id)
+      const firstTab = tabs[0]
+      if (!activeTabId && firstTab) {
+        setActiveTab(firstTab.id)
       }
     },
     [activeTabId, createTab, setActiveTab, tabs],

@@ -458,9 +458,10 @@ function colorForWorker(workerId: string): string {
     '#f472b6',
   ]
   const number = Number.parseInt(workerId.replace(/\D/g, ''), 10)
+  const fallback = palette[0] ?? '#34d399'
   return Number.isFinite(number) && number > 0
-    ? palette[(number - 1) % palette.length]
-    : palette[0]
+    ? (palette[(number - 1) % palette.length] ?? fallback)
+    : fallback
 }
 
 function roleFromWorkerId(workerId: string): string {
@@ -492,14 +493,15 @@ function buildWorkerReportCards(
   }
 
   return [...grouped.entries()]
-    .map(([workerId, workerRows]) => {
+    .flatMap(([workerId, workerRows]) => {
       const sorted = [...workerRows].sort((a, b) => {
         const stateRank = statePriority(a.state) - statePriority(b.state)
         if (stateRank !== 0) return stateRank
         return (b.updatedAt ?? 0) - (a.updatedAt ?? 0)
       })
       const latest = sorted[0]
-      return {
+      if (!latest) return []
+      const card: WorkerReportCard = {
         workerId,
         workerName: latest.workerName,
         role: latest.missionTitle ?? roleFromWorkerId(workerId),
@@ -523,6 +525,7 @@ function buildWorkerReportCards(
             .find((url) => url != null) ??
           null,
       }
+      return [card]
     })
     .sort((a, b) => {
       const stateRank = statePriority(a.state) - statePriority(b.state)

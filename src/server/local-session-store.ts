@@ -68,19 +68,21 @@ export function ensureLocalSession(
   sessionId: string,
   model?: string,
 ): LocalSession {
-  if (!Object.hasOwn(store.sessions, sessionId)) {
-    store.sessions[sessionId] = {
-      id: sessionId,
-      title: null,
-      model: model ?? null,
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
-      messageCount: 0,
-    }
-    store.messages[sessionId] = []
-    saveToDisk()
+  const existing = store.sessions[sessionId]
+  if (existing) return existing
+
+  const session: LocalSession = {
+    id: sessionId,
+    title: null,
+    model: model ?? null,
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
+    messageCount: 0,
   }
-  return store.sessions[sessionId]
+  store.sessions[sessionId] = session
+  store.messages[sessionId] = []
+  saveToDisk()
+  return session
 }
 
 export function updateLocalSessionTitle(

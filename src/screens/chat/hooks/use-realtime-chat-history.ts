@@ -573,7 +573,8 @@ export function useRealtimeChatHistory({
   useEffect(() => {
     if (!onCompactionStart) return
     if (realtimeMessages.length === 0) return
-    const latest = realtimeMessages[realtimeMessages.length - 1]
+    const latest = realtimeMessages.at(-1)
+    if (latest === undefined) return
 
     const textCandidates = [
       textFromMessage(latest),

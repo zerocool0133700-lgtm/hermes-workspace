@@ -94,7 +94,7 @@ describe('reconcileSessionDraft', () => {
       titleStatus: 'generating',
       updatedAt: 500,
     })
-    expect(sessions[0].lastMessage).toMatchObject({
+    expect(sessions[0]?.lastMessage).toMatchObject({
       timestamp: 500,
     })
   })

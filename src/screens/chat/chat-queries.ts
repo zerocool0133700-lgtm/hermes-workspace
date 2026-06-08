@@ -227,6 +227,7 @@ function replaceMatchingOptimisticUserMessage(
   if (matchIndex === -1) return null
 
   const existing = messages[matchIndex]
+  if (!existing) return null
   const replacement: ChatMessage = {
     ...existing,
     ...incomingMessage,
@@ -506,6 +507,9 @@ export function reconcileSessionDraft(
       }
 
       const source = sessions[sourceIndex]
+      if (!source) {
+        return sessions
+      }
       const targetIndex = sessions.findIndex((session, index) => {
         if (index === sourceIndex) return false
         return (

@@ -110,7 +110,7 @@ const COLORS = [
 function pickColor(id: string) {
   let h = 0
   for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) | 0
-  return COLORS[Math.abs(h) % COLORS.length]
+  return COLORS[Math.abs(h) % COLORS.length] ?? COLORS[0] ?? '#22d3ee'
 }
 
 function avatarSig(a: AvatarConfig | null | undefined): string {

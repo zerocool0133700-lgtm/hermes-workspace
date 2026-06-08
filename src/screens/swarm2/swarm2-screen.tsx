@@ -709,6 +709,7 @@ function cleanSwarmLabel(
           !/^context\b/i.test(line) &&
           !/^constraints\b/i.test(line),
       ) || lines[0]
+  if (selected === undefined) return compactText(raw, maxLength)
   const cleaned = selected
     .replace(/^[A-Z][A-Z0-9_ -]{2,}TASK\s*:\s*/i, '')
     .replace(/^DESIGN_ADDENDUM\s*:\s*/i, '')

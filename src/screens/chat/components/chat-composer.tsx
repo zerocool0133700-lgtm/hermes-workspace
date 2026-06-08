@@ -291,7 +291,9 @@ async function fetchModels(): Promise<{
       const provider =
         readModelText(record.provider) ||
         readModelText(record.owned_by) ||
-        (id.includes('/') ? id.split('/')[0] : 'hermes-agent')
+        (id.includes('/')
+          ? (id.split('/')[0] ?? 'hermes-agent')
+          : 'hermes-agent')
 
       return {
         ...record,
@@ -1113,8 +1115,8 @@ function ChatComposerComponent({
   // Read the runtime model from the models query (first item is from the current provider).
   const configuredModel = useMemo(() => {
     const models = modelsQuery.data?.models ?? []
-    if (!models.length) return ''
-    const first = models[0]
+    const first = models.at(0)
+    if (first === undefined) return ''
     return typeof first === 'string' ? first : first.id || first.name || ''
   }, [modelsQuery.data])
   // Derive the label directly from the store so navigation between sessions

@@ -128,7 +128,7 @@ function pickVoice(): SpeechSynthesisVoice | null {
   }
   // Fallback: any English voice
   const en = voices.find((v) => /^en[-_]/i.test(v.lang))
-  return en ?? voices[0]
+  return en ?? voices[0] ?? null
 }
 
 if (typeof window !== 'undefined' && 'speechSynthesis' in window) {

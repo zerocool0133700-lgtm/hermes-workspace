@@ -65,7 +65,9 @@ async function callGet(request: Request) {
     string,
     (ctx: { request: Request }) => Promise<Response>
   >
-  return handlers['GET']({ request })
+  const handler = handlers['GET']
+  if (!handler) throw new Error('GET handler not found')
+  return handler({ request })
 }
 
 async function callPost(request: Request) {
@@ -73,7 +75,9 @@ async function callPost(request: Request) {
     string,
     (ctx: { request: Request }) => Promise<Response>
   >
-  return handlers['POST']({ request })
+  const handler = handlers['POST']
+  if (!handler) throw new Error('POST handler not found')
+  return handler({ request })
 }
 
 async function callPut(request: Request, id: string) {
@@ -84,7 +88,9 @@ async function callPut(request: Request, id: string) {
       params: Record<string, string>
     }) => Promise<Response>
   >
-  return handlers['PUT']({ request, params: { id } })
+  const handler = handlers['PUT']
+  if (!handler) throw new Error('PUT handler not found')
+  return handler({ request, params: { id } })
 }
 
 async function callDelete(request: Request, id: string) {
@@ -95,7 +101,9 @@ async function callDelete(request: Request, id: string) {
       params: Record<string, string>
     }) => Promise<Response>
   >
-  return handlers['DELETE']({ request, params: { id } })
+  const handler = handlers['DELETE']
+  if (!handler) throw new Error('DELETE handler not found')
+  return handler({ request, params: { id } })
 }
 
 beforeEach(() => {

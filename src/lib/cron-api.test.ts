@@ -176,9 +176,9 @@ describe('fetchCronRuns', () => {
     )
 
     const [run] = await fetchCronRuns('job-1')
-    expect(run.status).toBe('error')
-    expect(run.error).toBe('kaboom')
-    expect(run.startedAt).toBe(new Date(1_700_000_000_000).toISOString())
+    expect(run?.status).toBe('error')
+    expect(run?.error).toBe('kaboom')
+    expect(run?.startedAt).toBe(new Date(1_700_000_000_000).toISOString())
   })
 
   it('returns an empty list when runs is not an array', async () => {
