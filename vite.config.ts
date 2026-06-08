@@ -453,10 +453,10 @@ const config = defineConfig(({ mode, command }) => {
         // regression without blocking. Raise these as the UI/route/store gaps
         // (the large untested screen surface) get covered over time.
         thresholds: {
-          statements: 15,
-          branches: 60,
-          functions: 24,
-          lines: 15,
+          statements: 18,
+          branches: 72,
+          functions: 31,
+          lines: 18,
         },
       },
       // Force vitest to run React through its own transform pipeline so ESM
