@@ -39,6 +39,12 @@ jobs:
       - name: Format check
         run: pnpm run format:check
 
+      - name: Ratchets (file-size budget · debt markers · duplication)
+        run: |
+          pnpm budget
+          pnpm debt
+          pnpm dup
+
       - name: Test (with coverage ratchet)
         run: pnpm test:coverage
 

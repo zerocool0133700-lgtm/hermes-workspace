@@ -1,0 +1,18 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "entry": [
+    "src/router.tsx",
+    "src/routes/**/*.{ts,tsx}",
+    "server-entry.js",
+    "electron/main.cjs",
+    "electron/preload.cjs",
+    "vite.config.ts",
+    "playwright.config.ts",
+    "scripts/*.mjs",
+    "e2e/**/*.spec.ts",
+    "src/**/*.test.{ts,tsx}"
+  ],
+  "project": ["src/**/*.{ts,tsx}"],
+  "ignore": ["src/routeTree.gen.ts", "**/*.d.ts"],
+  "ignoreBinaries": ["hermes", "electron-builder"]
+}

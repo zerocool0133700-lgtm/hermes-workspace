@@ -37,7 +37,12 @@
     "electron:build": "pnpm build && pnpm electron:bundle-server && electron-builder --config electron-builder.config.cjs",
     "electron:build:mac": "pnpm build && pnpm electron:bundle-server && electron-builder --mac --config electron-builder.config.cjs",
     "electron:build:win": "pnpm build && pnpm electron:bundle-server && electron-builder --win --config electron-builder.config.cjs",
-    "electron:bundle-server": "esbuild dist/server/server.js --bundle --platform=node --format=cjs --outfile=electron/server-bundle.cjs"
+    "electron:bundle-server": "esbuild dist/server/server.js --bundle --platform=node --format=cjs --outfile=electron/server-bundle.cjs",
+    "budget": "node scripts/file-size-budget.mjs",
+    "budget:write": "node scripts/file-size-budget.mjs --write",
+    "debt": "node scripts/debt-budget.mjs",
+    "dup": "jscpd src",
+    "deadcode": "knip"
   },
   "dependencies": {
     "@base-ui/react": "^1.1.0",
@@ -110,7 +115,9 @@
     "electron-builder": "^26.8.1",
     "esbuild": "^0.27.0",
     "eslint": "^10.2.0",
+    "jscpd": "^4.2.4",
     "jsdom": "^27.0.0",
+    "knip": "^6.16.1",
     "prettier": "^3.5.3",
     "tsx": "^4.21.0",
     "typescript": "^5.7.2",

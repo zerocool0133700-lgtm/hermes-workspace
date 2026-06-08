@@ -5,8 +5,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- **Enforced CI quality gate** — lint (`--max-warnings 0`), strict typecheck, prettier check, file-size/debt/duplication ratchets, and a coverage-ratcheted test run, plus separate build and Playwright e2e jobs. Node pinned, frozen lockfile.
+- **Deny-by-default API auth** — a `requireAuth` guard plus an `api-auth-coverage` test that fails CI if any `/api` route is neither guarded nor allowlisted; closed the events-SSE / swarm-kanban / playground-admin gaps.
+- **Tests** — coverage for the API clients (gateway/cron/tasks), the streaming hook, send-stream validation, and an agents↔swarm.yaml parity test; `@vitest/coverage-v8` ratchet.
+- **House docs** — `CLAUDE.md` (agent/dev guide) and `SPEC.md` (design record).
+
 ### Changed
 
+- **Type-safety hardened to the ecosystem bar** — `noUnusedLocals`, `noUnusedParameters`, and `noUncheckedIndexedAccess` enabled (614 issues fixed type-honestly), and **explicit `any` banned** (228 occurrences replaced with real types).
+- **Security** — path-traversal guard in the desktop static server; installers now download-verify-execute over pinned TLS; removed a dead localStorage token field.
+- **Cruft purge** — stopped committing the 300k-line generated bundle and deleted ~16.5k LOC of proven-dead gateway code; consolidated `formatRelativeTime` (fixing a crew-screen ms-vs-seconds bug); refactored gateway-api onto a shared request helper.
 - **`docker compose up` now pulls pre-built images by default** (#82) — `nousresearch/hermes-agent:latest` for the gateway and `ghcr.io/outsourc-e/hermes-workspace:latest` for the UI. Agent state persists in the `claude-data` named volume. Adds `docker-compose.dev.yml` overlay for building from source.
 
 ## [2.3.0] — 2026-05-07
