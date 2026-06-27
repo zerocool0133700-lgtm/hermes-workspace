@@ -19,8 +19,18 @@ import { dirname, join } from 'node:path'
  *
  * File location: ~/.hermes/workspace-sessions.json
  */
+export interface SessionEntry {
+  expiry: number
+  userId?: string
+  email?: string
+}
+
 interface SessionStore {
-  tokens: Record<string, number> // token -> expiry unix-ms
+  tokens: Record<string, SessionEntry | number> // number = legacy on-disk format
+}
+
+function coerce(v: SessionEntry | number): SessionEntry {
+  return typeof v === 'number' ? { expiry: v } : v
 }
 
 const STORE_FILE = join(
@@ -29,16 +39,17 @@ const STORE_FILE = join(
 )
 const TOKEN_TTL_MS = 30 * 24 * 60 * 60 * 1000 // 30 days
 
-function loadStore(): SessionStore {
+function loadStore(): { tokens: Record<string, SessionEntry> } {
   try {
     if (existsSync(STORE_FILE)) {
       const raw = readFileSync(STORE_FILE, 'utf8')
       const parsed = JSON.parse(raw) as SessionStore
-      // Expire any stale tokens on load
+      // Expire any stale tokens on load; coerce legacy number values to SessionEntry
       const now = Date.now()
-      const valid: Record<string, number> = {}
-      for (const [token, expiry] of Object.entries(parsed.tokens)) {
-        if (expiry > now) valid[token] = expiry
+      const valid: Record<string, SessionEntry> = {}
+      for (const [token, v] of Object.entries(parsed.tokens)) {
+        const entry = coerce(v)
+        if (entry.expiry > now) valid[token] = entry
       }
       return { tokens: valid }
     }
@@ -48,7 +59,7 @@ function loadStore(): SessionStore {
   return { tokens: {} }
 }
 
-function saveStore(store: SessionStore): void {
+function saveStore(store: { tokens: Record<string, SessionEntry> }): void {
   try {
     const dir = dirname(STORE_FILE)
     if (!existsSync(dir)) {
@@ -69,12 +80,12 @@ function saveStore(store: SessionStore): void {
 }
 
 // In-memory working copy
-const _tokens: Map<string, number> = new Map()
+const _tokens: Map<string, SessionEntry> = new Map()
 
 // Hydrate from disk on module load
 const initial = loadStore()
-for (const [token, expiry] of Object.entries(initial.tokens)) {
-  _tokens.set(token, expiry)
+for (const [token, entry] of Object.entries(initial.tokens)) {
+  _tokens.set(token, entry)
 }
 
 /**
@@ -83,8 +94,8 @@ for (const [token, expiry] of Object.entries(initial.tokens)) {
 function _prune(): void {
   const now = Date.now()
   let changed = false
-  for (const [token, expiry] of _tokens) {
-    if (expiry <= now) {
+  for (const [token, entry] of _tokens) {
+    if (entry.expiry <= now) {
       _tokens.delete(token)
       changed = true
     }
@@ -93,7 +104,7 @@ function _prune(): void {
 }
 
 function _persist(): void {
-  const store: SessionStore = { tokens: Object.fromEntries(_tokens) }
+  const store = { tokens: Object.fromEntries(_tokens) }
   saveStore(store)
 }
 
@@ -108,20 +119,34 @@ export function generateSessionToken(): string {
 }
 
 /**
- * Store a session token as valid (30-day TTL).
+ * Store a session token as valid (30-day TTL), optionally recording the IdP identity.
  */
-export function storeSessionToken(token: string): void {
-  _tokens.set(token, Date.now() + TOKEN_TTL_MS)
+export function storeSessionToken(
+  token: string,
+  identity?: { userId?: string; email?: string },
+): void {
+  _tokens.set(token, {
+    expiry: Date.now() + TOKEN_TTL_MS,
+    userId: identity?.userId,
+    email: identity?.email,
+  })
   _persist()
+}
+
+/**
+ * Return the full session entry for a token, or null if absent/expired.
+ */
+export function getSession(token: string): SessionEntry | null {
+  return _tokens.get(token) ?? null
 }
 
 /**
  * Check if a session token is valid and not expired.
  */
 export function isValidSessionToken(token: string): boolean {
-  const expiry = _tokens.get(token)
-  if (expiry === undefined) return false
-  if (expiry <= Date.now()) {
+  const entry = _tokens.get(token)
+  if (entry === undefined) return false
+  if (entry.expiry <= Date.now()) {
     _tokens.delete(token)
     _persist()
     return false
@@ -156,6 +181,21 @@ function getConfiguredPassword(): string {
  */
 export function isPasswordProtectionEnabled(): boolean {
   return getConfiguredPassword().length > 0
+}
+
+/**
+ * Check if IdP (external identity provider) authentication is enabled.
+ */
+export function isIdpEnabled(): boolean {
+  const v = (process.env.AUTH_IDP_ENABLED || '').trim().toLowerCase()
+  return v === '1' || v === 'true' || v === 'yes'
+}
+
+/**
+ * Check if any form of authentication is required (password or IdP).
+ */
+export function isAuthRequired(): boolean {
+  return isPasswordProtectionEnabled() || isIdpEnabled()
 }
 
 /**
@@ -248,19 +288,17 @@ function isLocalRequest(request: Request): boolean {
 /**
  * Check if the request is authenticated.
  * Returns true if:
- * - Password protection is disabled, OR
+ * - Neither password protection nor IdP is enabled, OR
  * - Request has a valid session token
  */
 export function isAuthenticated(request: Request): boolean {
-  // No password configured? No auth needed
-  if (!isPasswordProtectionEnabled()) {
+  // No auth required? Allow through
+  if (!isAuthRequired()) {
     return true
   }
 
   // Check for valid session token
-  const cookieHeader = request.headers.get('cookie')
-  const token = getSessionTokenFromCookie(cookieHeader)
-
+  const token = getSessionTokenFromCookie(request.headers.get('cookie'))
   if (!token) {
     return false
   }
@@ -269,7 +307,7 @@ export function isAuthenticated(request: Request): boolean {
 }
 
 export function requireLocalOrAuth(request: Request): boolean {
-  if (!isPasswordProtectionEnabled()) {
+  if (!isAuthRequired()) {
     return isLocalRequest(request)
   }
 
@@ -305,4 +343,25 @@ export function createSessionCookie(token: string): string {
   if (shouldSetSecureCookie()) attrs.push('Secure')
   attrs.push('SameSite=Strict', 'Path=/', `Max-Age=${30 * 24 * 60 * 60}`)
   return `claude-auth=${token}; ${attrs.join('; ')}`
+}
+
+/**
+ * Create a short-lived CSRF state cookie for the IdP OAuth round-trip.
+ *
+ * Uses SameSite=Lax (not Strict) so the browser sends it on the
+ * redirect-back GET from the IdP, and scopes it to the callback path.
+ * 5-minute lifetime is sufficient for the round-trip.
+ */
+export function createIdpStateCookie(state: string): string {
+  const attrs = ['HttpOnly']
+  if (shouldSetSecureCookie()) attrs.push('Secure')
+  attrs.push('SameSite=Lax', 'Path=/api/auth/callback', 'Max-Age=300')
+  return `hermes_idp_state=${state}; ${attrs.join('; ')}`
+}
+
+/**
+ * Return a Set-Cookie header that clears the IdP state cookie.
+ */
+export function clearIdpStateCookie(): string {
+  return `hermes_idp_state=; HttpOnly; SameSite=Lax; Path=/api/auth/callback; Max-Age=0`
 }
