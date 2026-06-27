@@ -366,7 +366,7 @@ function RootLayout() {
   return (
     <QueryClientProvider client={queryClient}>
       <Toaster />
-      {mounted && rootSurfaceState.showLogin ? <LoginScreen /> : null}
+      {mounted && rootSurfaceState.showLogin ? <LoginScreen idpEnabled={authStatus?.idpEnabled ?? false} /> : null}
       {mounted && rootSurfaceState.showOnboarding ? <ClaudeOnboarding /> : null}
       {rootSurfaceState.showWorkspaceShell ? (
         <>

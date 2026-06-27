@@ -1,6 +1,7 @@
 export interface AuthStatus {
   authenticated: boolean
   authRequired: boolean
+  idpEnabled?: boolean
   error?: string
 }
 

@@ -2,9 +2,19 @@ import { createFileRoute } from '@tanstack/react-router'
 import { json } from '@tanstack/react-start'
 import {
   isAuthenticated,
+  isAuthRequired,
+  isIdpEnabled,
   isPasswordProtectionEnabled,
 } from '../../server/auth-middleware'
 import { ensureGatewayProbed } from '../../server/gateway-capabilities'
+
+export function computeAuthCheck(request: Request) {
+  return {
+    authenticated: isAuthenticated(request),
+    authRequired: isAuthRequired(),
+    idpEnabled: isIdpEnabled(),
+  }
+}
 
 export const Route = createFileRoute('/api/auth-check')({
   server: {
@@ -43,13 +53,7 @@ export const Route = createFileRoute('/api/auth-check')({
           )
         }
 
-        const authRequired = isPasswordProtectionEnabled()
-        const authenticated = isAuthenticated(request)
-
-        return json({
-          authenticated,
-          authRequired,
-        })
+        return json(computeAuthCheck(request))
       },
     },
   },

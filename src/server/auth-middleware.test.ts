@@ -1,4 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { mkdtempSync, rmSync, writeFileSync, mkdirSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 
 /**
  * Regression tests for #123 (Secure cookie attribute) and #125
@@ -18,6 +21,8 @@ afterEach(() => {
   delete process.env.NODE_ENV
   delete process.env.TRUST_PROXY
   delete process.env.CLAUDE_PASSWORD
+  delete process.env.HERMES_HOME
+  delete process.env.AUTH_IDP_ENABLED
 })
 
 describe('createSessionCookie (#123)', () => {
@@ -93,5 +98,43 @@ describe('getRequestIp (#125)', () => {
     const { getRequestIp } = await import('./auth-middleware')
     const ip = getRequestIp(makeRequest({ 'x-real-ip': '198.51.100.5' }))
     expect(ip).toBe('198.51.100.5')
+  })
+})
+
+describe('session identity + authRequired(idp) + state cookie', () => {
+  let home: string
+
+  beforeEach(() => {
+    home = mkdtempSync(join(tmpdir(), 'hermes-auth-'))
+    process.env.HERMES_HOME = home
+  })
+
+  afterEach(() => {
+    rmSync(home, { recursive: true, force: true })
+  })
+
+  it('stores + reads identity on a session token', async () => {
+    const m = await import('./auth-middleware')
+    const token = m.generateSessionToken()
+    m.storeSessionToken(token, { userId: 'u1', email: 'a@b.c' })
+    expect(m.isValidSessionToken(token)).toBe(true)
+    expect(m.getSession(token)?.userId).toBe('u1')
+  })
+
+  it('isAuthRequired true when AUTH_IDP_ENABLED even without a password', async () => {
+    process.env.AUTH_IDP_ENABLED = 'true'
+    const m = await import('./auth-middleware')
+    expect(m.isAuthRequired()).toBe(true)
+    expect(m.isAuthenticated(new Request('http://x/'))).toBe(false) // no cookie → not authed
+  })
+
+  it('loads an old-format session file (number values) without crashing', async () => {
+    mkdirSync(home, { recursive: true })
+    writeFileSync(
+      join(home, 'workspace-sessions.json'),
+      JSON.stringify({ tokens: { legacy: Date.now() + 1_000_000 } }),
+    )
+    const m = await import('./auth-middleware')
+    expect(m.isValidSessionToken('legacy')).toBe(true) // coerced to { expiry }
   })
 })
