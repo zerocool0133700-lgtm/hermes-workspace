@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
 
-export function LoginScreen() {
+export function LoginScreen({ idpEnabled }: { idpEnabled?: boolean }) {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -66,42 +66,65 @@ export function LoginScreen() {
             </div>
           </div>
 
-          {/* Title */}
-          <h2 className="mb-2 text-center text-lg font-semibold text-primary-900">
-            Enter Password
-          </h2>
-          <p className="mb-6 text-center text-sm text-primary-600">
-            This workspace is password-protected
-          </p>
+          {idpEnabled ? (
+            <>
+              {/* Title */}
+              <h2 className="mb-2 text-center text-lg font-semibold text-primary-900">
+                Sign in to continue
+              </h2>
+              <p className="mb-6 text-center text-sm text-primary-600">
+                This workspace uses Ellie for authentication
+              </p>
 
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Password"
-                className="w-full rounded-lg border border-primary-200 bg-primary-50 px-4 py-2.5 text-primary-900 placeholder-primary-400 outline-none transition-all focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20"
-                disabled={loading}
-                autoFocus
-              />
-            </div>
+              {/* IdP button */}
+              <button
+                type="button"
+                onClick={() => { window.location.href = '/api/auth/idp-login' }}
+                className="w-full rounded-lg bg-accent-500 px-4 py-2.5 font-medium text-white transition-all hover:bg-accent-600 focus:outline-none focus:ring-2 focus:ring-accent-500/50"
+              >
+                Sign in with Ellie
+              </button>
+            </>
+          ) : (
+            <>
+              {/* Title */}
+              <h2 className="mb-2 text-center text-lg font-semibold text-primary-900">
+                Enter Password
+              </h2>
+              <p className="mb-6 text-center text-sm text-primary-600">
+                This workspace is password-protected
+              </p>
 
-            {error && (
-              <div className="rounded-lg bg-red-50 px-4 py-2.5 text-sm text-red-700 ring-1 ring-red-200 dark:bg-red-950/40 dark:text-red-200 dark:ring-red-800/60">
-                {error}
-              </div>
-            )}
+              {/* Form */}
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Password"
+                    className="w-full rounded-lg border border-primary-200 bg-primary-50 px-4 py-2.5 text-primary-900 placeholder-primary-400 outline-none transition-all focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20"
+                    disabled={loading}
+                    autoFocus
+                  />
+                </div>
 
-            <button
-              type="submit"
-              disabled={loading || !password}
-              className="w-full rounded-lg bg-accent-500 px-4 py-2.5 font-medium text-white transition-all hover:bg-accent-600 focus:outline-none focus:ring-2 focus:ring-accent-500/50 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {loading ? 'Authenticating...' : 'Continue'}
-            </button>
-          </form>
+                {error && (
+                  <div className="rounded-lg bg-red-50 px-4 py-2.5 text-sm text-red-700 ring-1 ring-red-200 dark:bg-red-950/40 dark:text-red-200 dark:ring-red-800/60">
+                    {error}
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={loading || !password}
+                  className="w-full rounded-lg bg-accent-500 px-4 py-2.5 font-medium text-white transition-all hover:bg-accent-600 focus:outline-none focus:ring-2 focus:ring-accent-500/50 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {loading ? 'Authenticating...' : 'Continue'}
+                </button>
+              </form>
+            </>
+          )}
         </div>
 
         {/* Footer */}

@@ -163,6 +163,7 @@ import { Route as ApiClaudeTasksTaskIdRouteImport } from './routes/api/claude-ta
 import { Route as ApiClaudeProxySplatRouteImport } from './routes/api/claude-proxy/$'
 import { Route as ApiClaudeJobsJobIdRouteImport } from './routes/api/claude-jobs.$jobId'
 import { Route as ApiAuthIdpLoginRouteImport } from './routes/api/auth/idp-login'
+import { Route as ApiAuthCallbackRouteImport } from './routes/api/auth/callback'
 import { Route as ApiArtifactsArtifactIdRouteImport } from './routes/api/artifacts.$artifactId'
 import { Route as ApiSessionsSessionKeyStatusRouteImport } from './routes/api/sessions/$sessionKey.status'
 import { Route as ApiSessionsSessionKeyActiveRunRouteImport } from './routes/api/sessions/$sessionKey.active-run'
@@ -945,6 +946,11 @@ const ApiAuthIdpLoginRoute = ApiAuthIdpLoginRouteImport.update({
   path: '/idp-login',
   getParentRoute: () => ApiAuthRoute,
 } as any)
+const ApiAuthCallbackRoute = ApiAuthCallbackRouteImport.update({
+  id: '/callback',
+  path: '/callback',
+  getParentRoute: () => ApiAuthRoute,
+} as any)
 const ApiArtifactsArtifactIdRoute = ApiArtifactsArtifactIdRouteImport.update({
   id: '/$artifactId',
   path: '/$artifactId',
@@ -1090,6 +1096,7 @@ export interface FileRoutesByFullPath {
   '/chat/': typeof ChatIndexRoute
   '/settings/': typeof SettingsIndexRoute
   '/api/artifacts/$artifactId': typeof ApiArtifactsArtifactIdRoute
+  '/api/auth/callback': typeof ApiAuthCallbackRoute
   '/api/auth/idp-login': typeof ApiAuthIdpLoginRoute
   '/api/claude-jobs/$jobId': typeof ApiClaudeJobsJobIdRoute
   '/api/claude-proxy/$': typeof ApiClaudeProxySplatRoute
@@ -1252,6 +1259,7 @@ export interface FileRoutesByTo {
   '/chat': typeof ChatIndexRoute
   '/settings': typeof SettingsIndexRoute
   '/api/artifacts/$artifactId': typeof ApiArtifactsArtifactIdRoute
+  '/api/auth/callback': typeof ApiAuthCallbackRoute
   '/api/auth/idp-login': typeof ApiAuthIdpLoginRoute
   '/api/claude-jobs/$jobId': typeof ApiClaudeJobsJobIdRoute
   '/api/claude-proxy/$': typeof ApiClaudeProxySplatRoute
@@ -1416,6 +1424,7 @@ export interface FileRoutesById {
   '/chat/': typeof ChatIndexRoute
   '/settings/': typeof SettingsIndexRoute
   '/api/artifacts/$artifactId': typeof ApiArtifactsArtifactIdRoute
+  '/api/auth/callback': typeof ApiAuthCallbackRoute
   '/api/auth/idp-login': typeof ApiAuthIdpLoginRoute
   '/api/claude-jobs/$jobId': typeof ApiClaudeJobsJobIdRoute
   '/api/claude-proxy/$': typeof ApiClaudeProxySplatRoute
@@ -1581,6 +1590,7 @@ export interface FileRouteTypes {
     | '/chat/'
     | '/settings/'
     | '/api/artifacts/$artifactId'
+    | '/api/auth/callback'
     | '/api/auth/idp-login'
     | '/api/claude-jobs/$jobId'
     | '/api/claude-proxy/$'
@@ -1743,6 +1753,7 @@ export interface FileRouteTypes {
     | '/chat'
     | '/settings'
     | '/api/artifacts/$artifactId'
+    | '/api/auth/callback'
     | '/api/auth/idp-login'
     | '/api/claude-jobs/$jobId'
     | '/api/claude-proxy/$'
@@ -1906,6 +1917,7 @@ export interface FileRouteTypes {
     | '/chat/'
     | '/settings/'
     | '/api/artifacts/$artifactId'
+    | '/api/auth/callback'
     | '/api/auth/idp-login'
     | '/api/claude-jobs/$jobId'
     | '/api/claude-proxy/$'
@@ -3177,6 +3189,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthIdpLoginRouteImport
       parentRoute: typeof ApiAuthRoute
     }
+    '/api/auth/callback': {
+      id: '/api/auth/callback'
+      path: '/callback'
+      fullPath: '/api/auth/callback'
+      preLoaderRoute: typeof ApiAuthCallbackRouteImport
+      parentRoute: typeof ApiAuthRoute
+    }
     '/api/artifacts/$artifactId': {
       id: '/api/artifacts/$artifactId'
       path: '/$artifactId'
@@ -3267,10 +3286,12 @@ const ApiArtifactsRouteWithChildren = ApiArtifactsRoute._addFileChildren(
 )
 
 interface ApiAuthRouteChildren {
+  ApiAuthCallbackRoute: typeof ApiAuthCallbackRoute
   ApiAuthIdpLoginRoute: typeof ApiAuthIdpLoginRoute
 }
 
 const ApiAuthRouteChildren: ApiAuthRouteChildren = {
+  ApiAuthCallbackRoute: ApiAuthCallbackRoute,
   ApiAuthIdpLoginRoute: ApiAuthIdpLoginRoute,
 }
 
